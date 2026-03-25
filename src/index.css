@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --color-neon-blue: #00f0ff;
+  --color-neon-purple: #b026ff;
+  --color-glass-bg: rgba(20, 20, 30, 0.4);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-white selection:bg-neon-blue selection:text-black overflow-x-hidden m-0 p-0;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-glass-bg backdrop-blur-md border border-glass-border shadow-[0_4px_30px_rgba(0,0,0,0.1)];
+  }
+  
+  .glass-card {
+    @apply bg-zinc-900/50 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl hover:shadow-neon-blue/20 transition-all duration-300;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-neon-blue to-neon-purple;
+  }
+
+  .neon-glow {
+    @apply shadow-[0_0_15px_rgba(0,240,255,0.5)];
+  }
+  
+  .neon-border {
+    @apply border border-neon-blue/50 shadow-[0_0_10px_rgba(0,240,255,0.3)];
+  }
+
+  .water-drop {
+    animation: waterDrop 6s ease-in-out infinite;
+    box-shadow: inset 10px 10px 20px rgba(255, 255, 255, 0.1), 
+                inset -10px -10px 20px rgba(0, 0, 0, 0.5), 
+                0 0 15px rgba(0,240,255,0.3);
+  }
+}
+
+@keyframes waterDrop {
+  0% {
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+  34% {
+    border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%;
+  }
+  67% {
+    border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%;
+  }
+  100% {
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+}
