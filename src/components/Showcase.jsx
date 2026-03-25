@@ -128,22 +128,24 @@ const Showcase = () => {
           ))}
         </div>
 
-        {/* Video Section */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="w-full rounded-3xl overflow-hidden glass-card p-2 neon-border"
+          className="w-full rounded-3xl overflow-hidden glass-card p-2 neon-border group"
         >
-          <video 
-            src="/assets/videos/lv_0_20241029162047.mp4" 
-            autoPlay 
-            loop 
-            muted 
-            playsInline
-            className="w-full h-auto max-h-[600px] object-cover rounded-2xl"
-          ></video>
+          <div className="w-full relative" style={{ paddingTop: "56.25%" }}>
+
+            <iframe
+              src="https://www.youtube.com/embed/uMrTk9aPvmc?autoplay=1&mute=1&controls=0&loop=1&playlist=uMrTk9aPvmc&modestbranding=1&rel=0&playsinline=1"
+              title="Portfolio Video"
+              className="absolute top-0 left-0 w-full h-full rounded-2xl border-0"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            ></iframe>
+
+          </div>
         </motion.div>
       </div>
     </section>
