@@ -1,12 +1,58 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, useScroll, useSpring } from 'framer-motion';
 import { generateWhatsAppLink } from '../utils/whatsapp';
 import { Link } from 'react-router-dom';
+
+const roles = [
+  "A Full Stack Python Developer.",
+  "A Face Swap Photo & Video Editor.",
+];
+
+const TYPING_SPEED = 80;
+const DELETING_SPEED = 40;
+const PAUSE_AFTER_TYPING = 2000;
+const PAUSE_AFTER_DELETING = 500;
 
 const Hero = () => {
   const sectionRef = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+
+  // Typing effect state
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [displayText, setDisplayText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentRole = roles[roleIndex];
+    let timeout;
+
+    if (!isDeleting) {
+      // Typing
+      if (displayText.length < currentRole.length) {
+        timeout = setTimeout(() => {
+          setDisplayText(currentRole.slice(0, displayText.length + 1));
+        }, TYPING_SPEED);
+      } else {
+        // Finished typing, pause then start deleting
+        timeout = setTimeout(() => setIsDeleting(true), PAUSE_AFTER_TYPING);
+      }
+    } else {
+      // Deleting
+      if (displayText.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayText(displayText.slice(0, -1));
+        }, DELETING_SPEED);
+      } else {
+        // Finished deleting, move to next role
+        setIsDeleting(false);
+        setRoleIndex((prev) => (prev + 1) % roles.length);
+        timeout = setTimeout(() => {}, PAUSE_AFTER_DELETING);
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, roleIndex]);
 
   const handleMouseMove = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -107,7 +153,16 @@ const Hero = () => {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight text-white leading-tight drop-shadow-2xl"
           >
-            Hello, <span className="text-gradient">I'm Surya</span><br/>A Full Stack Python Developer
+            Hello, <span className="text-gradient">I'm Surya</span><br/>
+            <span className="relative block min-h-[1.5em] w-full">
+              <span className="invisible block">
+                A Face Swap Photo & Video Editor.
+              </span>
+              <span className="absolute left-0 top-0 w-full text-center text-gradient break-words">
+                {displayText}
+                <span className="animate-pulse text-neon-blue">|</span>
+              </span>
+            </span>
           </motion.h1>
           
           <motion.p 
@@ -116,7 +171,7 @@ const Hero = () => {
             transition={{ delay: 0.5, duration: 0.8 }}
             className="text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl font-light text-shadow text-justify"
           >
-            Helping businesses grow with modern, extremely fast, and stunningly beautiful web solutions and video editing, Face swap Photos & Videos.
+            Helping businesses grow with modern, extremely fast, and stunningly beautiful web solutions and Face swap Photos & Videos.
           </motion.p>
           
           <motion.div 
