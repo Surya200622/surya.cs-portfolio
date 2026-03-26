@@ -1,10 +1,18 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Skills from '../components/Skills';
 
 const AboutUs = () => {
   const containerRef = useRef(null);
   const collageRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -31,20 +39,21 @@ const AboutUs = () => {
   const yBg2 = useSpring(rawYBg2, { stiffness: 40, damping: 25 });
 
   // Image parallax — controlled ranges, different speeds per layer for depth
-  const rawYImg1 = useTransform(collageProgress, [0, 1], [60, -80]);      // center — slowest (closest)
-  const rawYImg2 = useTransform(collageProgress, [0, 1], [-40, 100]);    // top-left — medium speed
-  const rawYImg3 = useTransform(collageProgress, [0, 1], [80, -100]);    // bottom-right — fastest (furthest)
+  // On mobile, disable transforms for clear image display
+  const rawYImg1 = useTransform(collageProgress, [0, 1], isMobile ? [0, 0] : [60, -80]);
+  const rawYImg2 = useTransform(collageProgress, [0, 1], isMobile ? [0, 0] : [-40, 100]);
+  const rawYImg3 = useTransform(collageProgress, [0, 1], isMobile ? [0, 0] : [80, -100]);
   const yImg1 = useSpring(rawYImg1, springConfig);
   const yImg2 = useSpring(rawYImg2, springConfig);
   const yImg3 = useSpring(rawYImg3, springConfig);
 
-  // Rotation on scroll — cards gently rotate as you scroll by
-  const rotateImg1 = useTransform(collageProgress, [0, 0.5, 1], [2, 0, -2]);
-  const rotateImg2 = useTransform(collageProgress, [0, 0.5, 1], [-4, -2, 0]);
-  const rotateImg3 = useTransform(collageProgress, [0, 0.5, 1], [3, 1, -1]);
+  // Rotation on scroll — disabled on mobile for clarity
+  const rotateImg1 = useTransform(collageProgress, [0, 0.5, 1], isMobile ? [0, 0, 0] : [2, 0, -2]);
+  const rotateImg2 = useTransform(collageProgress, [0, 0.5, 1], isMobile ? [0, 0, 0] : [-4, -2, 0]);
+  const rotateImg3 = useTransform(collageProgress, [0, 0.5, 1], isMobile ? [0, 0, 0] : [3, 1, -1]);
 
-  // Scale — center image grows subtly as it enters viewport
-  const scaleImg1 = useTransform(collageProgress, [0.1, 0.4, 0.8], [0.9, 1.02, 0.98]);
+  // Scale — disabled on mobile for clarity
+  const scaleImg1 = useTransform(collageProgress, [0.1, 0.4, 0.8], isMobile ? [1, 1, 1] : [0.9, 1.02, 0.98]);
   const smoothScaleImg1 = useSpring(scaleImg1, springConfig);
 
 
@@ -100,7 +109,7 @@ const AboutUs = () => {
         </motion.div>
 
         {/* Dynamic Collage Section */}
-        <div ref={collageRef} className="relative w-full max-w-5xl h-[800px] md:h-[800px] flex items-center justify-center">
+        <div ref={collageRef} className="relative w-full max-w-5xl h-[900px] md:h-[800px] flex items-center justify-center">
           
           {/* Top Left Image — medium layer speed + scroll rotation */}
           <motion.div 
@@ -110,9 +119,9 @@ const AboutUs = () => {
             whileInView="visible"
             viewport={{ once: true, margin: "-80px" }}
             custom={0}
-            className="absolute z-10 w-[70%] md:w-[350px] top-10 md:top-0 left-0 md:left-10"
+            className="absolute z-10 w-[75%] md:w-[350px] top-4 md:top-0 left-2 md:left-10"
           >
-            <div className="glass p-2 rounded-3xl border border-neon-purple/40 transform -rotate-3 md:-rotate-6 hover:rotate-0 transition-all duration-500 shadow-[0_0_40px_rgba(176,38,255,0.15)] bg-zinc-900/30 backdrop-blur-md">
+            <div className="glass p-2 rounded-3xl border border-neon-purple/40 transform rotate-0 md:-rotate-6 hover:rotate-0 transition-all duration-500 shadow-[0_0_40px_rgba(176,38,255,0.15)] bg-zinc-900/30 backdrop-blur-md">
               <img src="/assets/images/WhatsApp Image 2025-11-25 at 20.07.24_74456a06.jpg" alt="Artistic Profile" className="w-full h-auto rounded-2xl object-cover opacity-90 hover:opacity-100 transition-opacity" />
             </div>
             <div className="absolute -bottom-4 -left-4 md:-left-8 glass px-5 py-2 rounded-xl border border-neon-purple/20 backdrop-blur-xl bg-zinc-800/80">
@@ -128,7 +137,7 @@ const AboutUs = () => {
             whileInView="visible"
             viewport={{ once: true, margin: "-80px" }}
             custom={1}
-            className="absolute z-30 w-[85%] md:w-[450px] top-[150px] md:top-auto left-1/2 -translate-x-1/2 md:-translate-x-1/2 md:left-1/2"
+            className="absolute z-30 w-[85%] md:w-[450px] top-[280px] md:top-auto left-1/2 -translate-x-1/2 md:-translate-x-1/2 md:left-1/2"
           >
             <div className="glass p-2 md:p-3 rounded-3xl neon-border transform hover:scale-105 transition-all duration-500 shadow-[0_0_50px_rgba(0,240,255,0.25)] bg-zinc-900/40 backdrop-blur-xl">
               <img src="/assets/images/WhatsApp Image 2026-03-03 at 10.04.23 AM.jpeg" alt="Surya Profile" className="w-full h-auto rounded-2xl object-cover" />
@@ -147,10 +156,10 @@ const AboutUs = () => {
             whileInView="visible"
             viewport={{ once: true, margin: "-80px" }}
             custom={2}
-            className="absolute z-20 w-[75%] md:w-[400px] bottom-0 md:-bottom-20 right-0 md:right-0"
+            className="absolute z-20 w-[75%] md:w-[400px] bottom-0 md:-bottom-20 right-2 md:right-0"
           >
-            <div className="glass p-2 rounded-3xl border border-white/20 transform rotate-3 hover:rotate-0 transition-all duration-500 shadow-2xl bg-zinc-900/60 backdrop-blur-lg">
-              <img src="/assets/images/aifaceswap-1b7f5fe5feca730d7ec0009fcdcc80c6.jpg" alt="Casual Profile" className="w-full h-[250px] md:h-[350px] rounded-2xl object-cover" />
+            <div className="glass p-2 rounded-3xl border border-white/20 transform rotate-0 md:rotate-3 hover:rotate-0 transition-all duration-500 shadow-2xl bg-zinc-900/60 backdrop-blur-lg">
+              <img src="/assets/images/aifaceswap-1b7f5fe5feca730d7ec0009fcdcc80c6.jpg" alt="Casual Profile" className="w-full h-[200px] md:h-[350px] rounded-2xl object-cover" />
             </div>
             <div className="absolute -top-6 right-10 glass px-6 py-2 rounded-xl border border-white/10 backdrop-blur-xl bg-zinc-800/80 shadow-lg">
               <p className="text-white font-bold tracking-widest text-xs md:text-sm">CREATOR</p>
@@ -174,7 +183,7 @@ const AboutUs = () => {
         </motion.div>
 
       </div>
-      <div className="relative z-20 pb-20">
+      <div className="relative z-20 pb-20 w-screen left-1/2 -translate-x-1/2">
         <Skills />
       </div>
     </div>
