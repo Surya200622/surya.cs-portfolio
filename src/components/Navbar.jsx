@@ -44,7 +44,7 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative">
         <Link to="/" className="text-2xl font-bold text-white tracking-widest text-shadow-sm">
-          SURYA<span className="text-neon-blue">.CS</span>
+          Surya<span className="text-neon-blue">.CS</span>
         </Link>
         
         {/* Desktop Menu */}
