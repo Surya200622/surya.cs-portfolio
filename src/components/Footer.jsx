@@ -25,7 +25,7 @@ const Footer = () => {
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-white/5 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} SURYA .CS  All rights reserved.
+        &copy; {new Date().getFullYear()} Surya.CS  All rights reserved.
       </div>
     </footer>
   );
