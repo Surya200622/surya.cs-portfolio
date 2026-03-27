@@ -38,11 +38,9 @@ const Navbar = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 w-[95%] md:w-[90%] py-3 px-6 rounded-[40px] 
-      border border-white/10 bg-white/5 backdrop-blur-md
-      ${ scrolled
-        ? 'top-4 shadow-[0_8px_30px_rgba(0,0,0,0.3)]': 'top-4 bg-transparent border-transparent'}`
-      }
+      className={`fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 w-[95%] md:w-[90%] py-4 rounded-full ${
+        scrolled ? 'glass top-4 shadow-[0_4px_30px_rgba(0,0,0,0.1)]' : 'top-4 bg-transparent border-transparent'
+      }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative">
         <Link to="/" className="text-2xl font-bold text-white tracking-widest text-shadow-sm">
