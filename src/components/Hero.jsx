@@ -4,8 +4,8 @@ import { generateWhatsAppLink } from '../utils/whatsapp';
 import { Link } from 'react-router-dom';
 
 const roles = [
-  "A Full Stack Python Developer.",
-  "A Face Swap Photo & Video Editor.",
+  "A FULL STACK PYTHON DEVELOPER.",
+  "A FACE SWAP PHOTOS & VIDEOS EDITOR.",
 ];
 
 const TYPING_SPEED = 80;
@@ -153,10 +153,10 @@ const Hero = () => {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight text-white leading-tight drop-shadow-2xl"
           >
-            Hello, <span className="text-gradient">I'm Surya.CS</span><br/>
+            Hello, <span className="text-gradient">I'M SURYA.CS</span><br/>
             <span className="relative block min-h-[1.5em] w-full">
               <span className="invisible block">
-                A Face Swap Photo & Video Editor.
+                A FACE SWAP PHOTOS & VIDEOS EDITOR.
               </span>
               <span className="absolute left-0 top-0 w-full text-center text-gradient break-words">
                 {displayText}
