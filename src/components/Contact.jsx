@@ -21,6 +21,7 @@ const Contact = () => {
     const month = today.getMonth();
     const day = today.getDay();
 
+    // Saturday offer
     if (day === 6) {
       return {
         title: "Saturday Special Offer",
@@ -63,7 +64,6 @@ const Contact = () => {
     const timer = setInterval(() => {
       const now = new Date();
       const endDate = getOfferEndDate();
-
       const difference = endDate - now;
 
       if (difference <= 0) {
@@ -85,12 +85,12 @@ const Contact = () => {
   const calculatePrice = () => {
     let base = 0;
 
-    // Project type
+    // Project Type
     if (projectType === 'portfolio') base += 5000;
     if (projectType === 'ecommerce') base += 10000;
     if (projectType === 'custom') base += 15000;
 
-    // Service type
+    // Service Type
     if (serviceType === 'frontend') base += 0;
     if (serviceType === 'frontend-backend') base += 5000;
     if (serviceType === 'fullstack-live') base += 10000;
@@ -104,7 +104,6 @@ const Contact = () => {
 
     // Offer
     const offer = getDynamicOffer();
-
     if (offer) {
       base -= (base * offer.discountPercent) / 100;
     }
@@ -113,7 +112,7 @@ const Contact = () => {
   };
 
   const getQuoteMessage = () => {
-    return `Hi, I need a ${projectType} website with ${serviceType}, ${pages} pages, ${timeline} timeline. Estimated cost: ₹${calculatePrice()}`;
+    return `Hi, I used the price calculator. I need a ${projectType} website with ${serviceType}. Pages: ${pages}. Timeline: ${timeline}. Estimated price: ₹${calculatePrice()}. Let's discuss!`;
   };
 
   return (
@@ -123,86 +122,198 @@ const Contact = () => {
     >
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-bold text-white mb-4"
+          >
             Let's <span className="text-gradient">Talk</span>
-          </h2>
+          </motion.h2>
+
+          <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+            Ready to start your project? Get an instant estimate and reach out on WhatsApp.
+          </p>
         </div>
 
-        <div className="glass p-8 md:p-12 rounded-2xl border border-white/10">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Contact Info */}
+          <div className="lg:w-1/3 space-y-8">
+            <div className="glass p-8 rounded-2xl">
+              <h3 className="text-xl font-bold text-white mb-2">WhatsApp</h3>
+              <p className="text-gray-400 mb-6">+91 8220 443 165</p>
+            </div>
 
-          {/* Offer Banner */}
-          {getDynamicOffer() && (
-            <div className="mb-8 p-6 rounded-2xl border border-cyan-400/30 bg-cyan-400/5 backdrop-blur-md">
-              <p className="text-cyan-300 font-bold text-xl mb-2">
-                🎉 {getDynamicOffer().title}
-              </p>
+            <div className="glass p-8 rounded-2xl">
+              <h3 className="text-xl font-bold text-white mb-2">Email</h3>
+              <p className="text-gray-400 mb-6">cssurya2006@gmail.com</p>
+            </div>
+          </div>
 
-              <p className="text-gray-300 text-sm mb-4">
-                {getDynamicOffer().discountPercent}% OFF ends in
-              </p>
+          {/* Estimator */}
+          <div className="lg:w-2/3 glass p-8 md:p-12 rounded-2xl border border-white/10">
+            <h3 className="text-2xl font-bold text-white mb-8">
+              Project Estimator
+            </h3>
 
-              <div className="flex gap-4 flex-wrap">
-                {[
-                  { label: 'Days', value: timeLeft.days },
-                  { label: 'Hours', value: timeLeft.hours },
-                  { label: 'Minutes', value: timeLeft.minutes },
-                  { label: 'Seconds', value: timeLeft.seconds }
-                ].map((item, index) => (
-                  <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      scale: [1, 1.05, 1],
-                      boxShadow: [
-                        '0 0 10px rgba(0,240,255,0.2)',
-                        '0 0 30px rgba(0,240,255,0.7)',
-                        '0 0 10px rgba(0,240,255,0.2)'
-                      ]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      delay: index * 0.1,
-                      repeat: Infinity
-                    }}
-                    whileHover={{
-                      scale: 1.08,
-                      boxShadow: '0 0 35px rgba(0,240,255,0.8)'
-                    }}
-                    className="bg-white/5 border border-cyan-400/30 px-5 py-4 rounded-2xl text-center min-w-[90px]"
-                  >
-                    <p className="text-3xl font-extrabold text-white">
-                      {item.value}
-                    </p>
-                    <p className="text-xs text-cyan-300 uppercase mt-1">
-                      {item.label}
-                    </p>
-                  </motion.div>
-                ))}
+            <div className="space-y-6">
+
+              {/* Project Type */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase">
+                  Project Type
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {['portfolio', 'ecommerce', 'custom'].map(type => (
+                    <button
+                      key={type}
+                      onClick={() => setProjectType(type)}
+                      className={`py-3 px-4 rounded-xl border ${
+                        projectType === type
+                          ? 'bg-neon-blue/20 border-neon-blue text-neon-blue'
+                          : 'bg-white/5 border-white/10 text-gray-400'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Service Type */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase">
+                  Service Type
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    'frontend',
+                    'frontend-backend',
+                    'fullstack-live'
+                  ].map(service => (
+                    <button
+                      key={service}
+                      onClick={() => setServiceType(service)}
+                      className={`py-3 px-4 rounded-xl border ${
+                        serviceType === service
+                          ? 'bg-neon-purple/20 border-neon-purple text-neon-purple'
+                          : 'bg-white/5 border-white/10 text-gray-400'
+                      }`}
+                    >
+                      {service === 'frontend'
+                        ? 'Frontend'
+                        : service === 'frontend-backend'
+                        ? 'Frontend + Backend'
+                        : 'Full Stack + Live'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pages */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase">
+                  Number of Pages
+                </label>
+                <div className="grid grid-cols-3 gap-4">
+                  {['1-5', '5-10', '10+'].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => setPages(num)}
+                      className={`py-3 px-4 rounded-xl border ${
+                        pages === num
+                          ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400'
+                          : 'bg-white/5 border-white/10 text-gray-400'
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Timeline */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase">
+                  Timeline
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  {['flexible', 'urgent'].map(time => (
+                    <button
+                      key={time}
+                      onClick={() => setTimeline(time)}
+                      className={`py-3 px-4 rounded-xl border ${
+                        timeline === time
+                          ? 'bg-green-500/20 border-green-500 text-green-400'
+                          : 'bg-white/5 border-white/10 text-gray-400'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Offer Banner */}
+              {getDynamicOffer() && (
+                <div className="p-6 rounded-2xl border border-neon-blue/30 bg-neon-blue/5">
+                  <p className="text-neon-blue font-bold text-xl mb-4">
+                    🎉 {getDynamicOffer().title}
+                  </p>
+
+                  <div className="flex gap-4 flex-wrap">
+                    {Object.entries(timeLeft).map(([label, value], index) => (
+                      <motion.div
+                        key={label}
+                        animate={{
+                          scale: [1, 1.05, 1],
+                          boxShadow: [
+                            '0 0 10px rgba(0,240,255,0.2)',
+                            '0 0 30px rgba(0,240,255,0.7)',
+                            '0 0 10px rgba(0,240,255,0.2)'
+                          ]
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          delay: index * 0.1,
+                          repeat: Infinity
+                        }}
+                        className="bg-white/5 border border-neon-blue/30 px-5 py-4 rounded-2xl min-w-[90px] text-center"
+                      >
+                        <p className="text-3xl font-bold text-white">
+                          {value}
+                        </p>
+                        <p className="text-xs text-neon-blue uppercase mt-1">
+                          {label}
+                        </p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Price */}
+              <div className="mt-10 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                  <p className="text-gray-400 text-sm uppercase">
+                    Estimated Cost
+                  </p>
+                  <p className="text-4xl font-bold text-white">
+                    ₹{calculatePrice()}
+                  </p>
+                </div>
+
+                <a
+                  href={generateWhatsAppLink(getQuoteMessage())}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-8 py-4 bg-neon-blue text-zinc-950 font-bold rounded-full"
+                >
+                  <FaWhatsapp className="inline mr-2" />
+                  Get This Quote
+                </a>
               </div>
             </div>
-          )}
-
-          {/* Estimated Cost */}
-          <div className="mt-10 pt-8 border-t border-white/10">
-            <p className="text-gray-400 text-sm uppercase tracking-widest mb-1">
-              Estimated Cost
-            </p>
-
-            <p className="text-4xl font-extrabold text-white">
-              ₹{calculatePrice()}
-            </p>
-
-            <a
-              href={generateWhatsAppLink(getQuoteMessage())}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center px-8 py-4 bg-cyan-400 text-zinc-950 font-bold rounded-full"
-            >
-              <FaWhatsapp className="mr-2 text-xl" />
-              Get This Quote
-            </a>
           </div>
         </div>
       </div>
@@ -211,4 +322,3 @@ const Contact = () => {
 };
 
 export default Contact;
-
