@@ -1,156 +1,209 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaWhatsapp, FaEnvelope } from 'react-icons/fa';
 import { generateWhatsAppLink } from '../utils/whatsapp';
 
 const Contact = () => {
   const [projectType, setProjectType] = useState('portfolio');
+  const [serviceType, setServiceType] = useState('frontend');
   const [pages, setPages] = useState('1-5');
   const [timeline, setTimeline] = useState('flexible');
 
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+
+  const getDynamicOffer = () => {
+    const today = new Date();
+    const month = today.getMonth();
+    const day = today.getDay();
+
+    if (day === 6) {
+      return {
+        title: "Saturday Special Offer",
+        discountPercent: 10
+      };
+    }
+
+    const monthlyOffers = {
+      0: { title: "New Year Offer", discountPercent: 20 },
+      1: { title: "Valentine Offer", discountPercent: 15 },
+      2: { title: "March Startup Offer", discountPercent: 10 },
+      3: { title: "Summer Offer", discountPercent: 12 },
+      4: { title: "May Growth Offer", discountPercent: 10 },
+      5: { title: "June Developer Offer", discountPercent: 15 },
+      6: { title: "July Freelancer Offer", discountPercent: 10 },
+      7: { title: "Independence Offer", discountPercent: 18 },
+      8: { title: "September Business Offer", discountPercent: 12 },
+      9: { title: "Diwali Offer", discountPercent: 20 },
+      10: { title: "Festival Offer", discountPercent: 15 },
+      11: { title: "Year End Offer", discountPercent: 25 }
+    };
+
+    return monthlyOffers[month] || null;
+  };
+
+  const getOfferEndDate = () => {
+    const now = new Date();
+
+    return new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59
+    );
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const endDate = getOfferEndDate();
+
+      const difference = endDate - now;
+
+      if (difference <= 0) {
+        clearInterval(timer);
+        return;
+      }
+
+      setTimeLeft({
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / (1000 * 60)) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const calculatePrice = () => {
-    let base = 5000;
+    let base = 0;
+
+    // Project type
+    if (projectType === 'portfolio') base += 5000;
     if (projectType === 'ecommerce') base += 10000;
     if (projectType === 'custom') base += 15000;
-    
+
+    // Service type
+    if (serviceType === 'frontend') base += 0;
+    if (serviceType === 'frontend-backend') base += 5000;
+    if (serviceType === 'fullstack-live') base += 10000;
+
+    // Pages
     if (pages === '5-10') base += 3000;
     if (pages === '10+') base += 8000;
 
+    // Timeline
     if (timeline === 'urgent') base += 5000;
+
+    // Offer
+    const offer = getDynamicOffer();
+
+    if (offer) {
+      base -= (base * offer.discountPercent) / 100;
+    }
 
     return base.toLocaleString('en-IN');
   };
 
   const getQuoteMessage = () => {
-    return `Hi, I used the price calculator. I need a ${projectType} website with ${pages} pages. My timeline is ${timeline}. The estimated price was ₹${calculatePrice()}. Let's discuss!`;
+    return `Hi, I need a ${projectType} website with ${serviceType}, ${pages} pages, ${timeline} timeline. Estimated cost: ₹${calculatePrice()}`;
   };
 
   return (
-    <section id="contact" className="py-24 relative w-full bg-zinc-950 border-t border-white/5">
+    <section
+      id="contact"
+      className="py-24 relative w-full bg-zinc-950 border-t border-white/5"
+    >
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold text-white mb-4"
-          >
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Let's <span className="text-gradient">Talk</span>
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-gray-400 max-w-2xl mx-auto text-lg"
-          >
-            Ready to start your project? Get an instant estimate and reach out on WhatsApp.
-          </motion.p>
+          </h2>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Direct Contact Info */}
-          <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="lg:w-1/3 space-y-8"
-          >
-            <div className="glass p-8 rounded-2xl relative group hover:border-neon-blue/40 transition-colors">
-              <div className="w-14 h-14 bg-neon-blue/10 rounded-full flex items-center justify-center text-neon-blue text-2xl mb-6 group-hover:scale-110 transition-transform">
-                <FaWhatsapp />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">WhatsApp</h3>
-              <p className="text-gray-400 mb-6">+91 8220 443 165</p>
-              <a href={generateWhatsAppLink("Hi! I want to discuss a project.")} target="_blank" rel="noopener noreferrer" className="text-neon-blue font-bold hover:underline inline-flex items-center">
-                Chat Now <span className="ml-2">→</span>
-              </a>
-            </div>
+        <div className="glass p-8 md:p-12 rounded-2xl border border-white/10">
 
-            <div className="glass p-8 rounded-2xl relative group hover:border-neon-purple/40 transition-colors">
-              <div className="w-14 h-14 bg-neon-purple/10 rounded-full flex items-center justify-center text-neon-purple text-2xl mb-6 group-hover:scale-110 transition-transform">
-                <FaEnvelope />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Email</h3>
-              <p className="text-gray-400 mb-6">cssurya2006@gmail.com</p>
-              <a href="mailto:cssurya2006@gmail.com" className="text-neon-purple font-bold hover:underline inline-flex items-center">
-                Send Email <span className="ml-2">→</span>
-              </a>
-            </div>
-          </motion.div>
+          {/* Offer Banner */}
+          {getDynamicOffer() && (
+            <div className="mb-8 p-6 rounded-2xl border border-cyan-400/30 bg-cyan-400/5 backdrop-blur-md">
+              <p className="text-cyan-300 font-bold text-xl mb-2">
+                🎉 {getDynamicOffer().title}
+              </p>
 
-          {/* Price Calculator */}
-          <motion.div 
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="lg:w-2/3 glass p-8 md:p-12 rounded-2xl border border-white/10 relative overflow-hidden"
-          >
-             <h3 className="text-2xl font-bold text-white mb-8 border-b border-white/10 pb-4 relative z-10">Project Estimator</h3>
-             
-             <div className="space-y-6 relative z-10">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Project Type</label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                     {['portfolio', 'ecommerce', 'custom'].map(type => (
-                       <button 
-                         key={type}
-                         onClick={() => setProjectType(type)}
-                         className={`py-3 px-4 rounded-xl border transition-all font-medium capitalize outline-none focus:outline-none ${projectType === type ? 'bg-neon-blue/20 border-neon-blue text-neon-blue shadow-[0_0_15px_rgba(0,240,255,0.3)] scale-105' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}
-                       >
-                         {type}
-                       </button>
-                     ))}
-                  </div>
-                </div>
+              <p className="text-gray-300 text-sm mb-4">
+                {getDynamicOffer().discountPercent}% OFF ends in
+              </p>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Number of Pages</label>
-                  <div className="grid grid-cols-3 gap-4">
-                     {['1-5', '5-10', '10+'].map(num => (
-                       <button 
-                         key={num}
-                         onClick={() => setPages(num)}
-                         className={`py-3 px-4 rounded-xl border transition-all font-medium outline-none focus:outline-none ${pages === num ? 'bg-neon-purple/20 border-neon-purple text-neon-purple shadow-[0_0_15px_rgba(176,38,255,0.3)] scale-105' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}
-                       >
-                         {num}
-                       </button>
-                     ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Timeline</label>
-                  <div className="grid grid-cols-2 gap-4">
-                     {['flexible', 'urgent'].map(time => (
-                       <button 
-                         key={time}
-                         onClick={() => setTimeline(time)}
-                         className={`py-3 px-4 rounded-xl border transition-all font-medium capitalize outline-none focus:outline-none ${timeline === time ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)] scale-105' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}
-                       >
-                         {time}
-                       </button>
-                     ))}
-                  </div>
-                </div>
-
-                <div className="mt-10 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 bg-zinc-900/50 p-6 rounded-2xl">
-                  <div>
-                    <p className="text-gray-400 text-sm font-medium uppercase tracking-widest mb-1">Estimated Cost</p>
-                    <p className="text-4xl font-extrabold text-white">₹{calculatePrice()}</p>
-                  </div>
-                  <a 
-                    href={generateWhatsAppLink(getQuoteMessage())}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full md:w-auto px-8 py-4 bg-neon-blue text-zinc-950 font-bold rounded-full text-lg shadow-[0_0_20px_rgba(0,240,255,0.4)] hover:shadow-[0_0_30px_rgba(0,240,255,0.8)] hover:scale-105 transition-all duration-300 flex items-center justify-center whitespace-nowrap"
+              <div className="flex gap-4 flex-wrap">
+                {[
+                  { label: 'Days', value: timeLeft.days },
+                  { label: 'Hours', value: timeLeft.hours },
+                  { label: 'Minutes', value: timeLeft.minutes },
+                  { label: 'Seconds', value: timeLeft.seconds }
+                ].map((item, index) => (
+                  <motion.div
+                    key={item.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: [1, 1.05, 1],
+                      boxShadow: [
+                        '0 0 10px rgba(0,240,255,0.2)',
+                        '0 0 30px rgba(0,240,255,0.7)',
+                        '0 0 10px rgba(0,240,255,0.2)'
+                      ]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      delay: index * 0.1,
+                      repeat: Infinity
+                    }}
+                    whileHover={{
+                      scale: 1.08,
+                      boxShadow: '0 0 35px rgba(0,240,255,0.8)'
+                    }}
+                    className="bg-white/5 border border-cyan-400/30 px-5 py-4 rounded-2xl text-center min-w-[90px]"
                   >
-                    <FaWhatsapp className="mr-2 text-xl" /> Get This Quote
-                  </a>
-                </div>
-             </div>
-          </motion.div>
+                    <p className="text-3xl font-extrabold text-white">
+                      {item.value}
+                    </p>
+                    <p className="text-xs text-cyan-300 uppercase mt-1">
+                      {item.label}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Estimated Cost */}
+          <div className="mt-10 pt-8 border-t border-white/10">
+            <p className="text-gray-400 text-sm uppercase tracking-widest mb-1">
+              Estimated Cost
+            </p>
+
+            <p className="text-4xl font-extrabold text-white">
+              ₹{calculatePrice()}
+            </p>
+
+            <a
+              href={generateWhatsAppLink(getQuoteMessage())}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex items-center px-8 py-4 bg-cyan-400 text-zinc-950 font-bold rounded-full"
+            >
+              <FaWhatsapp className="mr-2 text-xl" />
+              Get This Quote
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -158,3 +211,4 @@ const Contact = () => {
 };
 
 export default Contact;
+
