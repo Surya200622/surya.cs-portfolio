@@ -2,7 +2,7 @@ import { FaGithub, FaLinkedin } from 'react-icons/fa';
 
 const Footer = () => {
   return (
-    <footer className="glass border-t border-white/10 mt-20 py-12 relative z-10 w-full">
+    <footer className="glass border-t border-white/10 py-12 relative z-10 w-full">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
           <h3 className="text-2xl font-bold text-neon-purple tracking-widest mb-4">SURYA<span className="text-neon-blue">.CS</span></h3>
