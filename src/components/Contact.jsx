@@ -1,5 +1,3 @@
-import { FaWhatsapp, FaEnvelope } from 'react-icons/fa';
-import { generateWhatsAppLink } from '../utils/whatsapp';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
