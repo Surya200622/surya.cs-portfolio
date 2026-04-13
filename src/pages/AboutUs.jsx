@@ -1,6 +1,235 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Skills from '../components/Skills';
+const Skills = () => <div className="text-center text-gray-500 py-10 w-full border border-dashed border-white/10 rounded-2xl mt-10">[ Skills Component Placeholder ]</div>;
+// -----------------------------------------
+
+const ParticleHeading = () => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    let animationFrameId;
+
+    const setCanvasSize = () => {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    };
+    setCanvasSize();
+
+    let particlesArray = [];
+    const mouse = {
+      x: null,
+      y: null,
+      radius: 100 // Interaction radius
+    };
+
+    const handleMouseMove = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = event.clientX - rect.left;
+      mouse.y = event.clientY - rect.top;
+    };
+
+    const handleTouchMove = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = event.touches[0].clientX - rect.left;
+      mouse.y = event.touches[0].clientY - rect.top;
+    };
+
+    const handleMouseLeave = () => {
+      mouse.x = null;
+      mouse.y = null;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleMouseLeave);
+    window.addEventListener('mouseout', handleMouseLeave);
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.baseX = x;
+        this.baseY = y;
+        this.color = color;
+        this.size = Math.random() * 2 + 0.5;
+        this.density = (Math.random() * 30) + 5;
+        this.angle = Math.random() * Math.PI * 2;
+        this.angleSpeed = Math.random() * 0.05 + 0.01;
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      update() {
+        this.angle += this.angleSpeed;
+        let wanderX = Math.cos(this.angle) * 1.5;
+        let wanderY = Math.sin(this.angle) * 1.5;
+        let targetX = this.baseX + wanderX;
+        let targetY = this.baseY + wanderY;
+
+        let dx = mouse.x - this.x;
+        let dy = mouse.y - this.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (mouse.x != null && distance < mouse.radius) {
+          let forceDirectionX = dx / distance;
+          let forceDirectionY = dy / distance;
+          let force = (mouse.radius - distance) / mouse.radius;
+
+          let directionX = forceDirectionX * force * this.density;
+          let directionY = forceDirectionY * force * this.density;
+
+          this.x -= directionX;
+          this.y -= directionY;
+        } else {
+          if (this.x !== targetX) {
+            let dx = this.x - targetX;
+            this.x -= dx / 15;
+          }
+          if (this.y !== targetY) {
+            let dy = this.y - targetY;
+            this.y -= dy / 15;
+          }
+        }
+      }
+    }
+
+    function init() {
+      particlesArray = [];
+      const offscreenCanvas = document.createElement('canvas');
+      const offscreenCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+
+      offscreenCanvas.width = canvas.width;
+      offscreenCanvas.height = canvas.height;
+
+      if (offscreenCanvas.width === 0 || offscreenCanvas.height === 0) return;
+
+      const text1 = "About ";
+      const text2 = "Our Journey";
+
+      let fontSize = 100;
+      offscreenCtx.font = `900 ${fontSize}px 'Arial Black', Impact, sans-serif`;
+
+      let w1 = offscreenCtx.measureText(text1).width;
+      let w2 = offscreenCtx.measureText(text2).width;
+
+      if (canvas.width < 768) {
+        // Mobile Layout: Stack vertically and scale to prevent cutoff
+        let mobileMaxWidth = canvas.width * 0.9;
+        if (w2 > mobileMaxWidth) {
+          fontSize = fontSize * (mobileMaxWidth / w2);
+          offscreenCtx.font = `900 ${fontSize}px 'Arial Black', Impact, sans-serif`;
+        }
+        w1 = offscreenCtx.measureText(text1.trim()).width;
+        w2 = offscreenCtx.measureText(text2).width;
+
+        let startY = (offscreenCanvas.height / 2) - (fontSize / 2);
+        
+        offscreenCtx.fillStyle = '#ffffff';
+        offscreenCtx.fillText(text1.trim(), (canvas.width - w1) / 2, startY);
+        
+        let gradient = offscreenCtx.createLinearGradient((canvas.width - w2) / 2, 0, (canvas.width + w2) / 2, 0);
+        gradient.addColorStop(0, '#00d2ff'); // Neon Blue
+        gradient.addColorStop(1, '#b026ff'); // Neon Purple
+        
+        offscreenCtx.fillStyle = gradient;
+        offscreenCtx.fillText(text2, (canvas.width - w2) / 2, startY + fontSize * 1.2);
+
+      } else {
+        // Desktop Layout: Single line, dynamically scaled to never cut off
+        let totalWidth = w1 + w2;
+        let desktopMaxWidth = canvas.width * 0.85; // Leave 15% safety margin
+        if (totalWidth > desktopMaxWidth) {
+          fontSize = fontSize * (desktopMaxWidth / totalWidth);
+          offscreenCtx.font = `900 ${fontSize}px 'Arial Black', Impact, sans-serif`;
+          w1 = offscreenCtx.measureText(text1).width;
+          w2 = offscreenCtx.measureText(text2).width;
+          totalWidth = w1 + w2;
+        }
+
+        let startX = (offscreenCanvas.width - totalWidth) / 2;
+        let startY = offscreenCanvas.height / 2 + (fontSize / 3);
+
+        offscreenCtx.fillStyle = '#ffffff';
+        offscreenCtx.fillText(text1, startX, startY);
+
+        let gradient = offscreenCtx.createLinearGradient(startX + w1, 0, startX + totalWidth, 0);
+        gradient.addColorStop(0, '#00d2ff'); // Neon Blue
+        gradient.addColorStop(1, '#b026ff'); // Neon Purple
+
+        offscreenCtx.fillStyle = gradient;
+        offscreenCtx.fillText(text2, startX + w1, startY);
+      }
+
+      const textCoordinates = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      const step = canvas.width < 768 ? 5 : 4; // Performance mapping
+
+      for (let y = 0, y2 = textCoordinates.height; y < y2; y += step) {
+        for (let x = 0, x2 = textCoordinates.width; x < x2; x += step) {
+          const alphaIndex = (y * 4 * textCoordinates.width) + (x * 4) + 3;
+          if (textCoordinates.data[alphaIndex] > 128) {
+            let r = textCoordinates.data[(y * 4 * textCoordinates.width) + (x * 4)];
+            let g = textCoordinates.data[(y * 4 * textCoordinates.width) + (x * 4) + 1];
+            let b = textCoordinates.data[(y * 4 * textCoordinates.width) + (x * 4) + 2];
+            particlesArray.push(new Particle(x, y, `rgb(${r}, ${g}, ${b})`));
+          }
+        }
+      }
+    }
+
+    function animate() {
+      // Using clearRect instead of fillRect for true transparency 
+      // so the glowing orbs behind it stay visible
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'screen';
+
+      for (let i = 0; i < particlesArray.length; i++) {
+        particlesArray[i].draw();
+        particlesArray[i].update();
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    const handleResize = () => {
+      setCanvasSize();
+      init();
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    // Ensure custom fonts are loaded before calculating text width
+    document.fonts.ready.then(() => {
+      init();
+      animate();
+    });
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleMouseLeave);
+      window.removeEventListener('mouseout', handleMouseLeave);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return (
+    <div className="w-full h-[250px] md:h-[200px] relative mb-6">
+      <h1 className="sr-only">About Our Journey</h1>
+      <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full z-10 cursor-crosshair" />
+    </div>
+  );
+};
 
 const AboutUs = () => {
   const containerRef = useRef(null);
@@ -56,8 +285,6 @@ const AboutUs = () => {
   const scaleImg1 = useTransform(collageProgress, [0.1, 0.4, 0.8], isMobile ? [1, 1, 1] : [0.9, 1.02, 0.98]);
   const smoothScaleImg1 = useSpring(scaleImg1, springConfig);
 
-
-
   // Staggered reveal variants
   const revealVariants = {
     hidden: { opacity: 0, y: 60, scale: 0.95 },
@@ -77,25 +304,27 @@ const AboutUs = () => {
     <div className="w-full bg-zinc-950 px-6 min-h-[150vh] relative overflow-hidden" ref={containerRef}>
       
       {/* Background Glowing Orbs — smooth drift */}
-      <motion.div style={{ y: yBg1 }} className="absolute top-40 left-10 md:left-40 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-neon-blue/10 rounded-full blur-[100px] pointer-events-none" />
-      <motion.div style={{ y: yBg2 }} className="absolute bottom-40 right-10 md:right-40 w-[250px] h-[250px] md:w-[600px] md:h-[600px] bg-neon-purple/10 rounded-full blur-[120px] pointer-events-none" />
+      <motion.div style={{ y: yBg1 }} className="absolute top-40 left-10 md:left-40 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-[#00d2ff]/10 rounded-full blur-[100px] pointer-events-none" />
+      <motion.div style={{ y: yBg2 }} className="absolute bottom-40 right-10 md:right-40 w-[250px] h-[250px] md:w-[600px] md:h-[600px] bg-[#b026ff]/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto pt-40 pb-32 relative z-10 flex flex-col items-center">
         
         {/* Header Section */}
         <motion.div 
           style={{ y: yText }} 
-          className="text-center mb-24 md:mb-40 z-30 px-4"
+          className="text-center mb-24 md:mb-40 z-30 px-4 w-full"
         >
-          <motion.h1 
+          {/* 3D Particle Text Component Replacing standard h1 */}
+          <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-5xl md:text-8xl font-extrabold mb-6 tracking-tight text-white drop-shadow-2xl"
+            className="w-full drop-shadow-2xl"
           >
-            About <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-purple">Our Journey</span>
-          </motion.h1>
+            <ParticleHeading />
+          </motion.div>
+          
           <motion.p 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -121,10 +350,10 @@ const AboutUs = () => {
             custom={0}
             className="absolute z-10 w-[75%] md:w-[350px] top-4 md:top-0 left-2 md:left-10"
           >
-            <div className="glass p-2 rounded-3xl border border-neon-purple/40 transform rotate-0 md:-rotate-6 hover:rotate-0 transition-all duration-500 shadow-[0_0_40px_rgba(176,38,255,0.15)] bg-zinc-900/30 backdrop-blur-md">
+            <div className="bg-zinc-900/30 backdrop-blur-md p-2 rounded-3xl border border-[#b026ff]/40 transform rotate-0 md:-rotate-6 hover:rotate-0 transition-all duration-500 shadow-[0_0_40px_rgba(176,38,255,0.15)]">
               <img src="/assets/images/WhatsApp Image 2025-11-25 at 20.07.24_74456a06.jpg" alt="Artistic Profile" className="w-full h-auto rounded-2xl object-cover opacity-90 hover:opacity-100 transition-opacity" />
             </div>
-            <div className="absolute -bottom-4 -left-4 md:-left-8 glass px-5 py-2 rounded-xl border border-neon-purple/20 backdrop-blur-xl bg-zinc-800/80">
+            <div className="absolute -bottom-4 -left-4 md:-left-8 bg-zinc-800/80 backdrop-blur-xl px-5 py-2 rounded-xl border border-[#b026ff]/20">
               <p className="text-white font-bold tracking-widest text-xs md:text-sm">VISIONARY</p>
             </div>
           </motion.div>
@@ -139,12 +368,12 @@ const AboutUs = () => {
             custom={1}
             className="absolute z-30 w-[85%] md:w-[450px] top-[280px] md:top-auto left-1/2 -translate-x-1/2 md:-translate-x-1/2 md:left-1/2"
           >
-            <div className="glass p-2 md:p-3 rounded-3xl neon-border transform hover:scale-105 transition-all duration-500 shadow-[0_0_50px_rgba(0,240,255,0.25)] bg-zinc-900/40 backdrop-blur-xl">
+            <div className="bg-zinc-900/40 backdrop-blur-xl p-2 md:p-3 rounded-3xl border border-[#00d2ff]/40 transform hover:scale-105 transition-all duration-500 shadow-[0_0_50px_rgba(0,240,255,0.25)]">
               <img src="/assets/images/WhatsApp Image 2026-03-03 at 10.04.23 AM.jpeg" alt="Surya Profile" className="w-full h-auto rounded-2xl object-cover" />
             </div>
-            <div className="absolute -bottom-6 -right-2 md:-right-8 glass px-6 py-3 rounded-2xl border flex items-center gap-3 border-neon-blue/40 backdrop-blur-xl shadow-xl">
-              <span className="w-3 h-3 bg-neon-blue rounded-full animate-pulse"></span>
-              <p className="text-neon-blue font-bold tracking-widest text-sm md:text-base">DEVELOPER</p>
+            <div className="absolute -bottom-6 -right-2 md:-right-8 bg-zinc-900/80 backdrop-blur-xl px-6 py-3 rounded-2xl border flex items-center gap-3 border-[#00d2ff]/40 shadow-xl">
+              <span className="w-3 h-3 bg-[#00d2ff] rounded-full animate-pulse"></span>
+              <p className="text-[#00d2ff] font-bold tracking-widest text-sm md:text-base">DEVELOPER</p>
             </div>
           </motion.div>
 
@@ -158,10 +387,10 @@ const AboutUs = () => {
             custom={2}
             className="absolute z-20 w-[75%] md:w-[400px] bottom-0 md:-bottom-20 right-2 md:right-0"
           >
-            <div className="glass p-2 rounded-3xl border border-white/20 transform rotate-0 md:rotate-3 hover:rotate-0 transition-all duration-500 shadow-2xl bg-zinc-900/60 backdrop-blur-lg">
+            <div className="bg-zinc-900/60 backdrop-blur-lg p-2 rounded-3xl border border-white/20 transform rotate-0 md:rotate-3 hover:rotate-0 transition-all duration-500 shadow-2xl">
               <img src="/assets/images/aifaceswap-1b7f5fe5feca730d7ec0009fcdcc80c6.jpg" alt="Casual Profile" className="w-full h-[200px] md:h-[350px] rounded-2xl object-cover" />
             </div>
-            <div className="absolute -top-6 right-10 glass px-6 py-2 rounded-xl border border-white/10 backdrop-blur-xl bg-zinc-800/80 shadow-lg">
+            <div className="absolute -top-6 right-10 bg-zinc-800/80 backdrop-blur-xl px-6 py-2 rounded-xl border border-white/10 shadow-lg">
               <p className="text-white font-bold tracking-widest text-xs md:text-sm">CREATOR</p>
             </div>
           </motion.div>
@@ -177,7 +406,7 @@ const AboutUs = () => {
           className="mt-40 md:mt-52 text-center z-30 px-4"
         >
             <h2 className="text-3xl md:text-6xl font-black text-white mb-6 tracking-tight">
-              Ready to create <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple to-neon-blue">Magic?</span>
+              Ready to create <br className="md:hidden" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#b026ff] to-[#00d2ff]">Magic?</span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg md:text-xl font-light">Combining aesthetics with performance to deliver products that don't just look good, but perform exceptionally.</p>
         </motion.div>
