@@ -29,7 +29,7 @@ const ParticleText = () => {
     // Set canvas to parent container's size
     const setCanvasSize = () => {
       canvas.width = canvas.parentElement.clientWidth || window.innerWidth;
-      canvas.height = canvas.parentElement.clientHeight || 600;
+      canvas.height = canvas.parentElement.clientHeight || 450;
     };
     setCanvasSize();
 
@@ -166,8 +166,8 @@ const ParticleText = () => {
     }
 
     function animate() {
-      // Trail effect background
-      ctx.fillStyle = 'rgba(5, 5, 5, 0.3)';
+      // Trail effect background changed to match zinc-950 perfectly
+      ctx.fillStyle = 'rgba(9, 9, 11, 0.3)'; 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'screen';
 
@@ -187,8 +187,11 @@ const ParticleText = () => {
 
     window.addEventListener('resize', handleResize);
     
-    init();
-    animate();
+    // Ensure custom fonts are loaded before calculating text width
+    document.fonts.ready.then(() => {
+      init();
+      animate();
+    });
 
     return () => {
       cancelAnimationFrame(animationFrameId);
@@ -201,7 +204,8 @@ const ParticleText = () => {
   }, []);
 
   return (
-    <div className="w-full h-screen min-h-[500px] bg-[#050505] relative overflow-hidden flex justify-center items-center">
+    // FIX: Removed h-screen and changed bg to match the site's dark mode theme seamlessly
+    <div className="w-full h-[350px] md:h-[450px] bg-zinc-950 relative overflow-hidden flex justify-center items-center">
       <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full z-10" />
     </div>
   );
