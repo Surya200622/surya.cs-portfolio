@@ -1,14 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, useScroll, useSpring } from 'framer-motion';
 import { MessageCircle, ArrowRight } from 'lucide-react';
-
-// --- MOCKS FOR PREVIEW ENVIRONMENT ---
-// In your local project, replace these with your actual imports:
 import { generateWhatsAppLink } from '../utils/whatsapp';
 import { Link } from 'react-router-dom';
+
+
 const generateWhatsAppLink = (msg) => `https://wa.me/918220443165?text=${encodeURIComponent(msg)}`;
 const Link = ({ to, className, children }) => <a href={to} className={className}>{children}</a>;
-// -------------------------------------
+
 
 // --- 3D Morphing Particle Text Component ---
 const MorphingHeroParticles = () => {
