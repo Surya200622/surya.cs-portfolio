@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-
-const Skills = () => <div className="text-center text-gray-500 py-10 w-full border border-dashed border-white/10 rounded-2xl mt-10">[ Skills Component Placeholder ]</div>;
+import Skills from '../components/Skills';
 
 const ParticleHeading = () => {
   const canvasRef = useRef(null);
