@@ -4,12 +4,62 @@ import { MessageCircle, ArrowRight } from 'lucide-react';
 import { generateWhatsAppLink } from '../utils/whatsapp';
 import { Link } from 'react-router-dom';
 
-// --- 3D Morphing Particle Text Component ---
+// --- Custom Hook to detect Mobile/Tablet ---
+const useWindowWidth = () => {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return width;
+};
+
+// --- Typewriter Component for Mobile/Tablet ---
+const TypewriterText = ({ texts }) => {
+  const [text, setText] = useState('');
+  const [index, setIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    const currentString = texts[index];
+
+    if (isDeleting) {
+      timer = setTimeout(() => {
+        setText(currentString.substring(0, text.length - 1));
+        if (text.length === 1) {
+          setIsDeleting(false);
+          setIndex((prev) => (prev + 1) % texts.length);
+        }
+      }, 50); // Speed of deletion
+    } else {
+      timer = setTimeout(() => {
+        setText(currentString.substring(0, text.length + 1));
+        if (text.length === currentString.length) {
+          timer = setTimeout(() => setIsDeleting(true), 2000); // Pause before deleting
+        }
+      }, 100); // Speed of typing
+    }
+
+    return () => clearTimeout(timer);
+  }, [text, isDeleting, index, texts]);
+
+  return (
+    <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00d2ff] to-[#e81cff] flex items-center justify-center h-[40px]">
+      {text}
+      <span className="animate-pulse text-[#00d2ff] ml-1">|</span>
+    </h2>
+  );
+};
+
+// --- 3D Morphing Particle Text Component (DESKTOP ONLY) ---
 const MorphingHeroParticles = () => {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let animationFrameId;
     let morphInterval;
@@ -25,32 +75,16 @@ const MorphingHeroParticles = () => {
     
     const texts = ["FULL STACK DEVELOPER", "FACE SWAP", "VIDEO EDITOR"];
 
-    const mouse = {
-      x: null,
-      y: null,
-      radius: 120
-    };
+    const mouse = { x: null, y: null, radius: 120 };
 
     const handleMouseMove = (event) => {
       const rect = canvas.getBoundingClientRect();
       mouse.x = event.clientX - rect.left;
       mouse.y = event.clientY - rect.top;
     };
-
-    const handleTouchMove = (event) => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = event.touches[0].clientX - rect.left;
-      mouse.y = event.touches[0].clientY - rect.top;
-    };
-
-    const handleMouseLeave = () => {
-      mouse.x = null;
-      mouse.y = null;
-    };
+    const handleMouseLeave = () => { mouse.x = null; mouse.y = null; };
 
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchmove', handleTouchMove);
-    window.addEventListener('touchend', handleMouseLeave);
     window.addEventListener('mouseout', handleMouseLeave);
 
     class Particle {
@@ -60,10 +94,7 @@ const MorphingHeroParticles = () => {
         this.baseX = x;
         this.baseY = y;
         this.color = color;
-        
-        let baseSize = canvas.width < 768 ? 1.8 : 2.5;
-        this.size = Math.random() * 2 + baseSize; 
-        
+        this.size = Math.random() * 2 + 2.5; 
         this.density = (Math.random() * 30) + 10;
         this.angle = Math.random() * Math.PI * 2;
         this.angleSpeed = Math.random() * 0.04 + 0.01;
@@ -87,7 +118,6 @@ const MorphingHeroParticles = () => {
         let dx = mouse.x - this.x;
         let dy = mouse.y - this.y;
         
-        // LAG FIX
         let distanceSq = dx * dx + dy * dy;
         let radiusSq = mouse.radius * mouse.radius;
 
@@ -120,7 +150,6 @@ const MorphingHeroParticles = () => {
       if (offscreenCanvas.width === 0 || offscreenCanvas.height === 0) return;
 
       const nameStr = "SURYA CS";
-
       let nameFontSize = Math.max(Math.min(canvas.width / 6.5, 120), 45); 
       let roleFontSize = Math.max(Math.min(canvas.width / 9, 65), 26);   
 
@@ -140,7 +169,7 @@ const MorphingHeroParticles = () => {
         roleW = offscreenCtx.measureText(roleStr).width;
       }
 
-      let gap = canvas.width < 768 ? 15 : 25;
+      let gap = 25;
       let totalHeight = nameFontSize + roleFontSize + gap;
       
       let nameStartY = (offscreenCanvas.height - totalHeight) / 2 + nameFontSize;
@@ -165,7 +194,7 @@ const MorphingHeroParticles = () => {
       offscreenCtx.fillText(roleStr, roleStartX, roleStartY);
 
       const textCoordinates = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-      const step = canvas.width < 768 ? 5 : 4; 
+      const step = 4; 
 
       for (let y = 0, y2 = textCoordinates.height; y < y2; y += step) {
         for (let x = 0, x2 = textCoordinates.width; x < x2; x += step) {
@@ -209,7 +238,6 @@ const MorphingHeroParticles = () => {
 
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
       ctx.globalCompositeOperation = 'screen';
 
       for (let i = 0; i < particlesArray.length; i++) {
@@ -241,8 +269,6 @@ const MorphingHeroParticles = () => {
       cancelAnimationFrame(animationFrameId);
       clearInterval(morphInterval);
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleMouseLeave);
       window.removeEventListener('mouseout', handleMouseLeave);
       window.removeEventListener('resize', handleResize);
     };
@@ -259,6 +285,10 @@ const Hero = () => {
   const sectionRef = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  
+  // Checking if screen is Tablet or Mobile (< 1024px)
+  const windowWidth = useWindowWidth();
+  const isMobileOrTablet = windowWidth < 1024;
 
   const handleMouseMove = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -313,7 +343,6 @@ const Hero = () => {
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
         
-        {/* SIGNIFICANTLY INCREASED PROFILE IMAGE SIZE */}
         <motion.div 
           style={{ 
             rotateX, 
@@ -346,7 +375,6 @@ const Hero = () => {
             className="bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] p-6 sm:p-10 md:p-14 rounded-[2rem] max-w-5xl w-full flex flex-col items-center mb-10"
           >
             
-            {/* BIGGER "HELLO, I'M" TEXT AND REMOVED BOTTOM MARGIN */}
             <motion.h2 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -356,15 +384,29 @@ const Hero = () => {
               Hello, I'm
             </motion.h2>
 
-            {/* FIXED THE GAP: Drastically reduced container height so the canvas hugs the text */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="w-full h-[140px] sm:h-[200px] md:h-[260px] lg:h-[300px] relative mb-4 sm:mb-8 flex items-center justify-center"
-            >
-              <MorphingHeroParticles />
-            </motion.div>
+            {/* CONDITIONAL RENDERING: Typewriter + Text (Mobile) OR 3D Canvas (Desktop) */}
+            {isMobileOrTablet ? (
+              <div className="flex flex-col items-center justify-center my-6 md:my-8 z-20">
+                <motion.h1 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3, duration: 0.8 }}
+                  className="text-5xl sm:text-7xl md:text-8xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-[#e81cff] via-[#b026ff] to-[#00d2ff] tracking-tighter drop-shadow-lg"
+                >
+                  SURYA CS
+                </motion.h1>
+                <TypewriterText texts={["FULL STACK DEVELOPER", "FACE SWAP", "VIDEO EDITOR"]} />
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                className="w-full lg:h-[300px] xl:h-[340px] relative mb-8 flex items-center justify-center"
+              >
+                <MorphingHeroParticles />
+              </motion.div>
+            )}
             
             <motion.p 
               initial={{ opacity: 0 }}
