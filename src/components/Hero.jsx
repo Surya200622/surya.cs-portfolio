@@ -4,11 +4,6 @@ import { MessageCircle, ArrowRight } from 'lucide-react';
 import { generateWhatsAppLink } from '../utils/whatsapp';
 import { Link } from 'react-router-dom';
 
-
-const generateWhatsAppLink = (msg) => `https://wa.me/918220443165?text=${encodeURIComponent(msg)}`;
-const Link = ({ to, className, children }) => <a href={to} className={className}>{children}</a>;
-
-
 // --- 3D Morphing Particle Text Component ---
 const MorphingHeroParticles = () => {
   const canvasRef = useRef(null);
@@ -279,7 +274,7 @@ const MorphingHeroParticles = () => {
 
 
 // --- Main Hero Component ---
-export default function Hero() {
+const Hero = () => {
   const sectionRef = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -340,7 +335,7 @@ export default function Hero() {
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
         
-        {/* Profile Image (Kept your structure, added fallback for preview) */}
+        {/* Profile Image */}
         <motion.div 
           style={{ 
             rotateX, 
@@ -383,7 +378,7 @@ export default function Hero() {
               Hello, I'm
             </motion.h2>
 
-            {/* The Morphing 3D Particle Engine - Taller height to accommodate huge text */}
+            {/* The Morphing 3D Particle Engine */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -430,6 +425,6 @@ export default function Hero() {
       </div>
     </section>
   );
-}
+};
 
 export default Hero;
