@@ -224,12 +224,12 @@ const ParticleText = () => {
   // --- MOBILE / TABLET RENDER ---
   if (isMobileOrTablet) {
     return (
-      <div className="w-full h-[200px] sm:h-[250px] bg-zinc-950 flex justify-center items-center">
+      <div className="w-full h-[200px] sm:h-[250px] bg-zinc-950 flex justify-center items-center overflow-hidden px-4">
         <motion.h1 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
-          className="text-5xl sm:text-7xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#e81cff] via-[#b026ff] to-[#00d2ff] tracking-tighter drop-shadow-lg"
+          className="text-[3.5rem] sm:text-[5.5rem] md:text-8xl font-['Arial_Black',Impact,sans-serif] italic uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#e81cff] via-[#b026ff] to-[#00d2ff] tracking-tighter drop-shadow-[0_0_25px_rgba(232,28,255,0.5)] whitespace-nowrap"
         >
           SURYA CS
         </motion.h1>
