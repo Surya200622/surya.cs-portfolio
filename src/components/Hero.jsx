@@ -4,7 +4,7 @@ import { MessageCircle, ArrowRight } from 'lucide-react';
 import { generateWhatsAppLink } from '../utils/whatsapp';
 import { Link } from 'react-router-dom';
 
-// --- 3D Morphing Particle Text Component ---
+// --- 3D Morphing Particle Text Component (Now ONLY for Sub-roles) ---
 const MorphingHeroParticles = () => {
   const canvasRef = useRef(null);
 
@@ -23,13 +23,13 @@ const MorphingHeroParticles = () => {
     let particlesArray = [];
     let currentTextIndex = 0;
     
-    // The words the particles will morph into (Sub-roles)
+    // The words the particles will morph into
     const texts = ["FULL STACK DEVELOPER", "FACE SWAP", "VIDEO EDITOR"];
 
     const mouse = {
       x: null,
       y: null,
-      radius: 120 // Interaction radius
+      radius: 120
     };
 
     const handleMouseMove = (event) => {
@@ -62,9 +62,9 @@ const MorphingHeroParticles = () => {
         this.baseY = y;
         this.color = color;
         
-        // Dynamic size based on screen width for the "3D bubbly" density
-        let baseSize = canvas.width < 768 ? 1 : 1.5;
-        this.size = Math.random() * 2.5 + baseSize; 
+        // Increased size slightly to fix the "too dark" issue
+        let baseSize = canvas.width < 768 ? 1.5 : 2;
+        this.size = Math.random() * 2 + baseSize; 
         
         this.density = (Math.random() * 30) + 10;
         this.angle = Math.random() * Math.PI * 2;
@@ -80,7 +80,6 @@ const MorphingHeroParticles = () => {
       }
 
       update() {
-        // Organic wandering motion (elliptical 3D feel)
         this.angle += this.angleSpeed;
         let wanderX = Math.cos(this.angle) * 1.5;
         let wanderY = Math.sin(this.angle * 0.8) * 1.5;
@@ -96,14 +95,12 @@ const MorphingHeroParticles = () => {
           let forceDirectionY = dy / distance;
           let force = (mouse.radius - distance) / mouse.radius;
 
-          // Stronger push force for massive particles
           let directionX = forceDirectionX * force * this.density * 1.2;
           let directionY = forceDirectionY * force * this.density * 1.2;
 
           this.x -= directionX;
           this.y -= directionY;
         } else {
-          // Smooth spring-like flight path to morphing targets
           this.x += (targetX - this.x) * 0.08;
           this.y += (targetY - this.y) * 0.08;
         }
@@ -120,62 +117,29 @@ const MorphingHeroParticles = () => {
 
       if (offscreenCanvas.width === 0 || offscreenCanvas.height === 0) return;
 
-      // 1. Text Setup (Changed to match Image 1 exactly)
-      const nameStr = "SURYA CS";
-
-      // Larger font sizes for the massive 3D look
-      let nameFontSize = Math.max(Math.min(canvas.width / 4.5, 180), 60);
-      let roleFontSize = Math.max(Math.min(canvas.width / 10, 60), 22);
-
-      // Scale Name if it overflows
-      offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
-      let nameW = offscreenCtx.measureText(nameStr).width;
-      if (nameW > canvas.width * 0.95) {
-        nameFontSize = nameFontSize * ((canvas.width * 0.95) / nameW);
-        offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
-        nameW = offscreenCtx.measureText(nameStr).width;
-      }
-
-      // Scale Role if it overflows
+      // Scale Role Text
+      let roleFontSize = Math.max(Math.min(canvas.width / 10, 70), 28);
       offscreenCtx.font = `900 ${roleFontSize}px 'Arial Black', Impact, sans-serif`;
       let roleW = offscreenCtx.measureText(roleStr).width;
+      
       if (roleW > canvas.width * 0.9) {
         roleFontSize = roleFontSize * ((canvas.width * 0.9) / roleW);
         offscreenCtx.font = `900 ${roleFontSize}px 'Arial Black', Impact, sans-serif`;
         roleW = offscreenCtx.measureText(roleStr).width;
       }
 
-      // 2. Layout Calculation
-      let gap = canvas.width < 768 ? 15 : 30; // Space between Name and Role
-      let totalHeight = nameFontSize + roleFontSize + gap;
-      
-      let nameStartY = (offscreenCanvas.height - totalHeight) / 2 + nameFontSize;
-      let roleStartY = nameStartY + gap + roleFontSize;
-
-      // 3. Draw Constant Name Line (SURYA CS) with sharp Pink/Cyan split
-      offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
-      let nameStartX = (offscreenCanvas.width - nameW) / 2;
-      let nameGradient = offscreenCtx.createLinearGradient(nameStartX, 0, nameStartX + nameW, 0);
-      
-      // The sharp split exactly like Image 1 (Pink for SURYA, Cyan for CS)
-      nameGradient.addColorStop(0, '#e81cff');       // Vibrant Pink
-      nameGradient.addColorStop(0.64, '#e81cff');    // Sharp stop
-      nameGradient.addColorStop(0.67, '#00d2ff');    // Sharp start cyan
-      nameGradient.addColorStop(1, '#00d2ff');       // Cyan
-
-      offscreenCtx.fillStyle = nameGradient;
-      offscreenCtx.fillText(nameStr, nameStartX, nameStartY);
-
-      // 4. Draw Dynamic Role Line Below (Cyan to Pink smooth gradient)
-      offscreenCtx.font = `900 ${roleFontSize}px 'Arial Black', Impact, sans-serif`;
+      // Center the role text perfectly in the canvas
       let roleStartX = (offscreenCanvas.width - roleW) / 2;
+      let roleStartY = offscreenCanvas.height / 2 + roleFontSize / 3;
+
+      // Draw Gradient
       let roleGradient = offscreenCtx.createLinearGradient(roleStartX, 0, roleStartX + roleW, 0);
       roleGradient.addColorStop(0, '#00d2ff'); 
       roleGradient.addColorStop(1, '#e81cff');
       offscreenCtx.fillStyle = roleGradient;
       offscreenCtx.fillText(roleStr, roleStartX, roleStartY);
 
-      // 5. Extract Pixels (Lower step = Higher density 3D particles)
+      // Extract Pixels
       const textCoordinates = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
       const step = canvas.width < 768 ? 4 : 3; 
 
@@ -191,20 +155,10 @@ const MorphingHeroParticles = () => {
         }
       }
 
-      // 6. Split arrays so "SURYA CS" particles DO NOT shuffle/morph
-      // Everything strictly below the name's baseline belongs to the Role
-      let splitIndex = newTargets.findIndex(t => t.y > nameStartY + (gap / 2));
-      if (splitIndex === -1) splitIndex = newTargets.length;
-      
-      let nameTargets = newTargets.slice(0, splitIndex);
-      let roleTargets = newTargets.slice(splitIndex);
-      
-      // Shuffle ONLY the role targets to create the matrix morphing effect
-      roleTargets.sort(() => Math.random() - 0.5);
-      
-      newTargets = [...nameTargets, ...roleTargets];
+      // Shuffle role targets so it morphs chaotically
+      newTargets.sort(() => Math.random() - 0.5);
 
-      // 7. Update Particles Array smoothly
+      // Update Particles Array
       for(let i=0; i < newTargets.length; i++) {
         if(i < particlesArray.length) {
             particlesArray[i].baseX = newTargets[i].x;
@@ -218,7 +172,6 @@ const MorphingHeroParticles = () => {
         }
       }
       
-      // Trim excess particles if the new word is shorter
       if (particlesArray.length > newTargets.length) {
           particlesArray.splice(newTargets.length);
       }
@@ -227,8 +180,8 @@ const MorphingHeroParticles = () => {
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Using source-over to keep particles opaque, making them look like 3D bubbles
-      ctx.globalCompositeOperation = 'source-over';
+      // 'screen' makes the overlapping particles glow brighter
+      ctx.globalCompositeOperation = 'screen';
 
       for (let i = 0; i < particlesArray.length; i++) {
         particlesArray[i].update();
@@ -249,7 +202,6 @@ const MorphingHeroParticles = () => {
       init(texts[0]);
       animate();
       
-      // Morph roles every 4 seconds
       morphInterval = setInterval(() => {
         currentTextIndex = (currentTextIndex + 1) % texts.length;
         init(texts[currentTextIndex]);
@@ -292,7 +244,6 @@ const Hero = () => {
     y.set(0);
   };
 
-  // Smooth spring-based mouse tilt
   const rawRotateX = useTransform(y, [-400, 400], [10, -10]);
   const rawRotateY = useTransform(x, [-400, 400], [-10, 10]);
   const rotateX = useSpring(rawRotateX, { stiffness: 150, damping: 20, mass: 0.5 });
@@ -320,10 +271,8 @@ const Hero = () => {
       onMouseLeave={handleMouseLeave}
       className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-center pt-24 pb-12 bg-[#050505] text-white font-sans selection:bg-[#e81cff] selection:text-white"
     >
-      {/* Absolute dark overlay to ensure deep blacks */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#111] via-[#050505] to-black"></div>
 
-      {/* Parallax Background Glow Orbs */}
       <motion.div 
         style={{ y: yGlow1, x: glowX }}
         className="absolute top-10 left-1/4 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-[#e81cff]/15 rounded-full blur-[140px] pointer-events-none z-0"
@@ -335,7 +284,6 @@ const Hero = () => {
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
         
-        {/* Profile Image */}
         <motion.div 
           style={{ 
             rotateX, 
@@ -360,7 +308,6 @@ const Hero = () => {
           />
         </motion.div>
 
-        {/* Content Container */}
         <motion.div style={{ y: smoothYText }} className="w-full flex justify-center z-20">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -373,17 +320,27 @@ const Hero = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-2 text-zinc-100 tracking-wide"
+              className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-1 text-zinc-100 tracking-wide"
             >
               Hello, I'm
             </motion.h2>
 
-            {/* The Morphing 3D Particle Engine */}
-            <motion.div
+            {/* NEW: Static, super bright SURYA CS Text */}
+            <motion.h1 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="w-full h-[180px] sm:h-[260px] md:h-[350px] lg:h-[400px] relative mb-4 sm:mb-8"
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#e81cff] via-[#b026ff] to-[#00d2ff] tracking-tighter drop-shadow-lg"
+            >
+              SURYA CS
+            </motion.h1>
+
+            {/* The Morphing 3D Particle Engine - Now strictly for the morphing roles below the name */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="w-full h-[60px] sm:h-[80px] md:h-[120px] relative mb-6 sm:mb-8"
             >
               <MorphingHeroParticles />
             </motion.div>
@@ -391,7 +348,7 @@ const Hero = () => {
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
               className="text-base sm:text-lg md:text-xl text-zinc-400 mb-8 sm:mb-10 max-w-2xl font-light leading-relaxed px-4 text-center"
             >
               Helping businesses grow with modern, extremely fast, and stunningly beautiful web solutions alongside Face swap Photos & Videos.
