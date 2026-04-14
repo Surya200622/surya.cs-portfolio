@@ -61,7 +61,6 @@ const MorphingHeroParticles = () => {
         this.baseY = y;
         this.color = color;
         
-        // Slightly larger base size to compensate for performance optimizations
         let baseSize = canvas.width < 768 ? 1.8 : 2.5;
         this.size = Math.random() * 2 + baseSize; 
         
@@ -88,12 +87,12 @@ const MorphingHeroParticles = () => {
         let dx = mouse.x - this.x;
         let dy = mouse.y - this.y;
         
-        // LAG FIX: Calculate distance squared first to avoid heavy square root calculations every frame!
+        // LAG FIX
         let distanceSq = dx * dx + dy * dy;
         let radiusSq = mouse.radius * mouse.radius;
 
         if (mouse.x != null && distanceSq < radiusSq) {
-          let distance = Math.sqrt(distanceSq); // Only run expensive math if inside the hover radius
+          let distance = Math.sqrt(distanceSq); 
           let forceDirectionX = dx / distance;
           let forceDirectionY = dy / distance;
           let force = (mouse.radius - distance) / mouse.radius;
@@ -104,7 +103,6 @@ const MorphingHeroParticles = () => {
           this.x -= directionX;
           this.y -= directionY;
         } else {
-          // Smooth return to base
           this.x += (targetX - this.x) * 0.08;
           this.y += (targetY - this.y) * 0.08;
         }
@@ -123,11 +121,9 @@ const MorphingHeroParticles = () => {
 
       const nameStr = "SURYA CS";
 
-      // 1. Adjusted Font Sizes (Smaller Name, Larger Role)
-      let nameFontSize = Math.max(Math.min(canvas.width / 6.5, 120), 45); // Decreased
-      let roleFontSize = Math.max(Math.min(canvas.width / 9, 65), 26);   // Increased
+      let nameFontSize = Math.max(Math.min(canvas.width / 6.5, 120), 45); 
+      let roleFontSize = Math.max(Math.min(canvas.width / 9, 65), 26);   
 
-      // Scale Name if it overflows
       offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
       let nameW = offscreenCtx.measureText(nameStr).width;
       if (nameW > canvas.width * 0.95) {
@@ -136,7 +132,6 @@ const MorphingHeroParticles = () => {
         nameW = offscreenCtx.measureText(nameStr).width;
       }
 
-      // Scale Role if it overflows
       offscreenCtx.font = `900 ${roleFontSize}px 'Arial Black', Impact, sans-serif`;
       let roleW = offscreenCtx.measureText(roleStr).width;
       if (roleW > canvas.width * 0.9) {
@@ -145,14 +140,12 @@ const MorphingHeroParticles = () => {
         roleW = offscreenCtx.measureText(roleStr).width;
       }
 
-      // 2. Layout Calculation
       let gap = canvas.width < 768 ? 15 : 25;
       let totalHeight = nameFontSize + roleFontSize + gap;
       
       let nameStartY = (offscreenCanvas.height - totalHeight) / 2 + nameFontSize;
       let roleStartY = nameStartY + gap + roleFontSize;
 
-      // 3. Draw SURYA CS Line
       offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
       let nameStartX = (offscreenCanvas.width - nameW) / 2;
       let nameGradient = offscreenCtx.createLinearGradient(nameStartX, 0, nameStartX + nameW, 0);
@@ -163,7 +156,6 @@ const MorphingHeroParticles = () => {
       offscreenCtx.fillStyle = nameGradient;
       offscreenCtx.fillText(nameStr, nameStartX, nameStartY);
 
-      // 4. Draw Role Line Below
       offscreenCtx.font = `900 ${roleFontSize}px 'Arial Black', Impact, sans-serif`;
       let roleStartX = (offscreenCanvas.width - roleW) / 2;
       let roleGradient = offscreenCtx.createLinearGradient(roleStartX, 0, roleStartX + roleW, 0);
@@ -172,7 +164,6 @@ const MorphingHeroParticles = () => {
       offscreenCtx.fillStyle = roleGradient;
       offscreenCtx.fillText(roleStr, roleStartX, roleStartY);
 
-      // 5. Extract Pixels (LAG FIX: slightly optimized density step)
       const textCoordinates = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
       const step = canvas.width < 768 ? 5 : 4; 
 
@@ -188,19 +179,16 @@ const MorphingHeroParticles = () => {
         }
       }
 
-      // 6. Split arrays based on Y-axis so SURYA CS DOES NOT SHUFFLE
       let splitIndex = newTargets.findIndex(t => t.y > nameStartY + (gap / 2));
       if (splitIndex === -1) splitIndex = newTargets.length;
       
-      let nameTargets = newTargets.slice(0, splitIndex); // SURYA CS Targets
-      let roleTargets = newTargets.slice(splitIndex);    // Role Targets
+      let nameTargets = newTargets.slice(0, splitIndex); 
+      let roleTargets = newTargets.slice(splitIndex);    
       
-      // Shuffle ONLY the role targets
       roleTargets.sort(() => Math.random() - 0.5);
       
       newTargets = [...nameTargets, ...roleTargets];
 
-      // 7. Update Particles Array smoothly
       for(let i=0; i < newTargets.length; i++) {
         if(i < particlesArray.length) {
             particlesArray[i].baseX = newTargets[i].x;
@@ -214,7 +202,6 @@ const MorphingHeroParticles = () => {
         }
       }
       
-      // Trim excess particles
       if (particlesArray.length > newTargets.length) {
           particlesArray.splice(newTargets.length);
       }
@@ -326,6 +313,7 @@ const Hero = () => {
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
         
+        {/* SIGNIFICANTLY INCREASED PROFILE IMAGE SIZE */}
         <motion.div 
           style={{ 
             rotateX, 
@@ -337,7 +325,7 @@ const Hero = () => {
           }}
           animate={{ y: [0, -12, 0] }}
           transition={{ y: { duration: 5, repeat: Infinity, ease: "easeInOut" } }}
-          className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full overflow-hidden border-[3px] border-[#00d2ff]/60 mb-8 sm:mb-12 shadow-[0_0_50px_rgba(0,210,255,0.25)] will-change-transform z-30 group"
+          className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 lg:w-[400px] lg:h-[400px] rounded-full overflow-hidden border-[3px] border-[#00d2ff]/60 mb-8 sm:mb-12 shadow-[0_0_50px_rgba(0,210,255,0.25)] will-change-transform z-30 group"
         >
           <img 
             src="/assets/images/WhatsApp Image 2026-03-03 at 10.04.23 AM.jpeg" 
@@ -358,21 +346,22 @@ const Hero = () => {
             className="bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] p-6 sm:p-10 md:p-14 rounded-[2rem] max-w-5xl w-full flex flex-col items-center mb-10"
           >
             
-            {/* INCREASED SIZE: Added text-2xl to sm:text-4xl here */}
+            {/* BIGGER "HELLO, I'M" TEXT AND REMOVED BOTTOM MARGIN */}
             <motion.h2 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-1 text-zinc-100 tracking-wide z-20"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-0 text-zinc-100 tracking-wide z-20"
             >
               Hello, I'm
             </motion.h2>
 
+            {/* FIXED THE GAP: Drastically reduced container height so the canvas hugs the text */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[480px] relative mb-4 sm:mb-8"
+              className="w-full h-[140px] sm:h-[200px] md:h-[260px] lg:h-[300px] relative mb-4 sm:mb-8 flex items-center justify-center"
             >
               <MorphingHeroParticles />
             </motion.div>
