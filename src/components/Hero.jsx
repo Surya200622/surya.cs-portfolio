@@ -4,7 +4,7 @@ import { MessageCircle, ArrowRight } from 'lucide-react';
 import { generateWhatsAppLink } from '../utils/whatsapp';
 import { Link } from 'react-router-dom';
 
-// --- 3D Morphing Particle Text Component (Now ONLY for Sub-roles) ---
+// --- 3D Morphing Particle Text Component ---
 const MorphingHeroParticles = () => {
   const canvasRef = useRef(null);
 
@@ -23,7 +23,6 @@ const MorphingHeroParticles = () => {
     let particlesArray = [];
     let currentTextIndex = 0;
     
-    // The words the particles will morph into
     const texts = ["FULL STACK DEVELOPER", "FACE SWAP", "VIDEO EDITOR"];
 
     const mouse = {
@@ -62,7 +61,6 @@ const MorphingHeroParticles = () => {
         this.baseY = y;
         this.color = color;
         
-        // Increased size slightly to fix the "too dark" issue
         let baseSize = canvas.width < 768 ? 1.5 : 2;
         this.size = Math.random() * 2 + baseSize; 
         
@@ -117,29 +115,58 @@ const MorphingHeroParticles = () => {
 
       if (offscreenCanvas.width === 0 || offscreenCanvas.height === 0) return;
 
-      // Scale Role Text
-      let roleFontSize = Math.max(Math.min(canvas.width / 10, 70), 28);
+      const nameStr = "SURYA CS";
+
+      // 1. Font Sizes
+      let nameFontSize = Math.max(Math.min(canvas.width / 5, 160), 50);
+      let roleFontSize = Math.max(Math.min(canvas.width / 12, 50), 22);
+
+      // Scale Name if it overflows
+      offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
+      let nameW = offscreenCtx.measureText(nameStr).width;
+      if (nameW > canvas.width * 0.95) {
+        nameFontSize = nameFontSize * ((canvas.width * 0.95) / nameW);
+        offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
+        nameW = offscreenCtx.measureText(nameStr).width;
+      }
+
+      // Scale Role if it overflows
       offscreenCtx.font = `900 ${roleFontSize}px 'Arial Black', Impact, sans-serif`;
       let roleW = offscreenCtx.measureText(roleStr).width;
-      
       if (roleW > canvas.width * 0.9) {
         roleFontSize = roleFontSize * ((canvas.width * 0.9) / roleW);
         offscreenCtx.font = `900 ${roleFontSize}px 'Arial Black', Impact, sans-serif`;
         roleW = offscreenCtx.measureText(roleStr).width;
       }
 
-      // Center the role text perfectly in the canvas
-      let roleStartX = (offscreenCanvas.width - roleW) / 2;
-      let roleStartY = offscreenCanvas.height / 2 + roleFontSize / 3;
+      // 2. Layout Calculation
+      let gap = canvas.width < 768 ? 15 : 30;
+      let totalHeight = nameFontSize + roleFontSize + gap;
+      
+      let nameStartY = (offscreenCanvas.height - totalHeight) / 2 + nameFontSize;
+      let roleStartY = nameStartY + gap + roleFontSize;
 
-      // Draw Gradient
+      // 3. Draw SURYA CS Line
+      offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
+      let nameStartX = (offscreenCanvas.width - nameW) / 2;
+      let nameGradient = offscreenCtx.createLinearGradient(nameStartX, 0, nameStartX + nameW, 0);
+      nameGradient.addColorStop(0, '#e81cff');
+      nameGradient.addColorStop(0.64, '#e81cff');
+      nameGradient.addColorStop(0.67, '#00d2ff');
+      nameGradient.addColorStop(1, '#00d2ff');
+      offscreenCtx.fillStyle = nameGradient;
+      offscreenCtx.fillText(nameStr, nameStartX, nameStartY);
+
+      // 4. Draw Role Line Below
+      offscreenCtx.font = `900 ${roleFontSize}px 'Arial Black', Impact, sans-serif`;
+      let roleStartX = (offscreenCanvas.width - roleW) / 2;
       let roleGradient = offscreenCtx.createLinearGradient(roleStartX, 0, roleStartX + roleW, 0);
       roleGradient.addColorStop(0, '#00d2ff'); 
       roleGradient.addColorStop(1, '#e81cff');
       offscreenCtx.fillStyle = roleGradient;
       offscreenCtx.fillText(roleStr, roleStartX, roleStartY);
 
-      // Extract Pixels
+      // 5. Extract Pixels
       const textCoordinates = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
       const step = canvas.width < 768 ? 4 : 3; 
 
@@ -155,10 +182,22 @@ const MorphingHeroParticles = () => {
         }
       }
 
-      // Shuffle role targets so it morphs chaotically
-      newTargets.sort(() => Math.random() - 0.5);
+      // 6. THE TRICK: Split arrays based on Y-axis so SURYA CS DOES NOT SHUFFLE
+      // Anything below the name baseline + half the gap is considered the role text
+      let splitIndex = newTargets.findIndex(t => t.y > nameStartY + (gap / 2));
+      if (splitIndex === -1) splitIndex = newTargets.length;
+      
+      let nameTargets = newTargets.slice(0, splitIndex); // SURYA CS Targets (Order preserved)
+      let roleTargets = newTargets.slice(splitIndex);    // Role Targets
+      
+      // Shuffle ONLY the role targets to create the matrix morphing effect
+      roleTargets.sort(() => Math.random() - 0.5);
+      
+      // Recombine. Because nameTargets is first and unshuffled, particles[0 to N] 
+      // will always stick exactly to the "SURYA CS" pixels.
+      newTargets = [...nameTargets, ...roleTargets];
 
-      // Update Particles Array
+      // 7. Update Particles Array smoothly
       for(let i=0; i < newTargets.length; i++) {
         if(i < particlesArray.length) {
             particlesArray[i].baseX = newTargets[i].x;
@@ -172,6 +211,7 @@ const MorphingHeroParticles = () => {
         }
       }
       
+      // Trim excess particles if the new word is shorter
       if (particlesArray.length > newTargets.length) {
           particlesArray.splice(newTargets.length);
       }
@@ -180,7 +220,6 @@ const MorphingHeroParticles = () => {
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // 'screen' makes the overlapping particles glow brighter
       ctx.globalCompositeOperation = 'screen';
 
       for (let i = 0; i < particlesArray.length; i++) {
@@ -226,7 +265,7 @@ const MorphingHeroParticles = () => {
 
 
 // --- Main Hero Component ---
-const Hero = () => {
+export default function Hero() {
   const sectionRef = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -320,27 +359,17 @@ const Hero = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-1 text-zinc-100 tracking-wide"
+              className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-1 text-zinc-100 tracking-wide z-20"
             >
               Hello, I'm
             </motion.h2>
 
-            {/* NEW: Static, super bright SURYA CS Text */}
-            <motion.h1 
+            {/* The Morphing 3D Particle Engine - Height increased to fit both Title and Roles */}
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-[#e81cff] via-[#b026ff] to-[#00d2ff] tracking-tighter drop-shadow-lg"
-            >
-              SURYA CS
-            </motion.h1>
-
-            {/* The Morphing 3D Particle Engine - Now strictly for the morphing roles below the name */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-              className="w-full h-[60px] sm:h-[80px] md:h-[120px] relative mb-6 sm:mb-8"
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[480px] relative mb-4 sm:mb-8"
             >
               <MorphingHeroParticles />
             </motion.div>
@@ -348,8 +377,8 @@ const Hero = () => {
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="text-base sm:text-lg md:text-xl text-zinc-400 mb-8 sm:mb-10 max-w-2xl font-light leading-relaxed px-4 text-center"
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="text-base sm:text-lg md:text-xl text-zinc-400 mb-8 sm:mb-10 max-w-2xl font-light leading-relaxed px-4 text-center z-20 relative"
             >
               Helping businesses grow with modern, extremely fast, and stunningly beautiful web solutions alongside Face swap Photos & Videos.
             </motion.p>
@@ -358,7 +387,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full justify-center px-4"
+              className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full justify-center px-4 z-20 relative"
             >
               <a 
                 href={generateWhatsAppLink("Hi! I want a custom high-converting website.")}
@@ -382,6 +411,6 @@ const Hero = () => {
       </div>
     </section>
   );
-};
+}
 
 export default Hero;
