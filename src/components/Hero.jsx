@@ -61,7 +61,8 @@ const MorphingHeroParticles = () => {
         this.baseY = y;
         this.color = color;
         
-        let baseSize = canvas.width < 768 ? 1.5 : 2;
+        // Slightly larger base size to compensate for performance optimizations
+        let baseSize = canvas.width < 768 ? 1.8 : 2.5;
         this.size = Math.random() * 2 + baseSize; 
         
         this.density = (Math.random() * 30) + 10;
@@ -79,16 +80,20 @@ const MorphingHeroParticles = () => {
 
       update() {
         this.angle += this.angleSpeed;
-        let wanderX = Math.cos(this.angle) * 1.5;
-        let wanderY = Math.sin(this.angle * 0.8) * 1.5;
+        let wanderX = Math.cos(this.angle) * 1.2;
+        let wanderY = Math.sin(this.angle * 0.8) * 1.2;
         let targetX = this.baseX + wanderX;
         let targetY = this.baseY + wanderY;
 
         let dx = mouse.x - this.x;
         let dy = mouse.y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // LAG FIX: Calculate distance squared first to avoid heavy square root calculations every frame!
+        let distanceSq = dx * dx + dy * dy;
+        let radiusSq = mouse.radius * mouse.radius;
 
-        if (mouse.x != null && distance < mouse.radius) {
+        if (mouse.x != null && distanceSq < radiusSq) {
+          let distance = Math.sqrt(distanceSq); // Only run expensive math if inside the hover radius
           let forceDirectionX = dx / distance;
           let forceDirectionY = dy / distance;
           let force = (mouse.radius - distance) / mouse.radius;
@@ -99,6 +104,7 @@ const MorphingHeroParticles = () => {
           this.x -= directionX;
           this.y -= directionY;
         } else {
+          // Smooth return to base
           this.x += (targetX - this.x) * 0.08;
           this.y += (targetY - this.y) * 0.08;
         }
@@ -117,9 +123,9 @@ const MorphingHeroParticles = () => {
 
       const nameStr = "SURYA CS";
 
-      // 1. Font Sizes
-      let nameFontSize = Math.max(Math.min(canvas.width / 5, 160), 50);
-      let roleFontSize = Math.max(Math.min(canvas.width / 12, 50), 22);
+      // 1. Adjusted Font Sizes (Smaller Name, Larger Role)
+      let nameFontSize = Math.max(Math.min(canvas.width / 6.5, 120), 45); // Decreased
+      let roleFontSize = Math.max(Math.min(canvas.width / 9, 65), 26);   // Increased
 
       // Scale Name if it overflows
       offscreenCtx.font = `900 ${nameFontSize}px 'Arial Black', Impact, sans-serif`;
@@ -140,7 +146,7 @@ const MorphingHeroParticles = () => {
       }
 
       // 2. Layout Calculation
-      let gap = canvas.width < 768 ? 15 : 30;
+      let gap = canvas.width < 768 ? 15 : 25;
       let totalHeight = nameFontSize + roleFontSize + gap;
       
       let nameStartY = (offscreenCanvas.height - totalHeight) / 2 + nameFontSize;
@@ -166,9 +172,9 @@ const MorphingHeroParticles = () => {
       offscreenCtx.fillStyle = roleGradient;
       offscreenCtx.fillText(roleStr, roleStartX, roleStartY);
 
-      // 5. Extract Pixels
+      // 5. Extract Pixels (LAG FIX: slightly optimized density step)
       const textCoordinates = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-      const step = canvas.width < 768 ? 4 : 3; 
+      const step = canvas.width < 768 ? 5 : 4; 
 
       for (let y = 0, y2 = textCoordinates.height; y < y2; y += step) {
         for (let x = 0, x2 = textCoordinates.width; x < x2; x += step) {
@@ -186,10 +192,10 @@ const MorphingHeroParticles = () => {
       let splitIndex = newTargets.findIndex(t => t.y > nameStartY + (gap / 2));
       if (splitIndex === -1) splitIndex = newTargets.length;
       
-      let nameTargets = newTargets.slice(0, splitIndex); // SURYA CS Targets (Order preserved)
+      let nameTargets = newTargets.slice(0, splitIndex); // SURYA CS Targets
       let roleTargets = newTargets.slice(splitIndex);    // Role Targets
       
-      // Shuffle ONLY the role targets to create the matrix morphing effect
+      // Shuffle ONLY the role targets
       roleTargets.sort(() => Math.random() - 0.5);
       
       newTargets = [...nameTargets, ...roleTargets];
@@ -208,7 +214,7 @@ const MorphingHeroParticles = () => {
         }
       }
       
-      // Trim excess particles if the new word is shorter
+      // Trim excess particles
       if (particlesArray.length > newTargets.length) {
           particlesArray.splice(newTargets.length);
       }
@@ -262,7 +268,6 @@ const MorphingHeroParticles = () => {
 
 
 // --- Main Hero Component ---
-// Changed from 'export default function Hero()' to 'const Hero = () => {' to fix the build error
 const Hero = () => {
   const sectionRef = useRef(null);
   const x = useMotionValue(0);
@@ -353,11 +358,12 @@ const Hero = () => {
             className="bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] p-6 sm:p-10 md:p-14 rounded-[2rem] max-w-5xl w-full flex flex-col items-center mb-10"
           >
             
+            {/* INCREASED SIZE: Added text-2xl to sm:text-4xl here */}
             <motion.h2 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-1 text-zinc-100 tracking-wide z-20"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-1 text-zinc-100 tracking-wide z-20"
             >
               Hello, I'm
             </motion.h2>
@@ -410,5 +416,4 @@ const Hero = () => {
   );
 };
 
-// Only ONE default export!
 export default Hero;
