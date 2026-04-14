@@ -1,12 +1,33 @@
-import { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { Compass } from 'lucide-react';
 import Skills from '../components/Skills';
 
+// --- Custom Hook to detect Mobile/Tablet ---
+const useWindowWidth = () => {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return width;
+};
+
+// --- 3D Morphing Particle Text Component ---
 const ParticleHeading = () => {
   const canvasRef = useRef(null);
+  
+  // Detect screen size
+  const windowWidth = useWindowWidth();
+  const isMobileOrTablet = windowWidth < 1024;
 
   useEffect(() => {
+    // Skip heavy particle logic entirely on mobile/tablet
+    if (isMobileOrTablet) return;
+
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     let animationFrameId;
 
@@ -75,9 +96,13 @@ const ParticleHeading = () => {
 
         let dx = mouse.x - this.x;
         let dy = mouse.y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // LAG FIX: Calculate distance squared first
+        let distanceSq = dx * dx + dy * dy;
+        let radiusSq = mouse.radius * mouse.radius;
 
-        if (mouse.x != null && distance < mouse.radius) {
+        if (mouse.x != null && distanceSq < radiusSq) {
+          let distance = Math.sqrt(distanceSq);
           let forceDirectionX = dx / distance;
           let forceDirectionY = dy / distance;
           let force = (mouse.radius - distance) / mouse.radius;
@@ -119,56 +144,33 @@ const ParticleHeading = () => {
       let w1 = offscreenCtx.measureText(text1).width;
       let w2 = offscreenCtx.measureText(text2).width;
 
-      if (canvas.width < 768) {
-        // Mobile Layout: Stack vertically and scale to prevent cutoff
-        let mobileMaxWidth = canvas.width * 0.9;
-        if (w2 > mobileMaxWidth) {
-          fontSize = fontSize * (mobileMaxWidth / w2);
-          offscreenCtx.font = `900 ${fontSize}px 'Arial Black', Impact, sans-serif`;
-        }
-        w1 = offscreenCtx.measureText(text1.trim()).width;
+      // Desktop Layout: Single line, dynamically scaled to never cut off
+      let totalWidth = w1 + w2;
+      let desktopMaxWidth = canvas.width * 0.85; // Leave 15% safety margin
+      if (totalWidth > desktopMaxWidth) {
+        fontSize = fontSize * (desktopMaxWidth / totalWidth);
+        offscreenCtx.font = `900 ${fontSize}px 'Arial Black', Impact, sans-serif`;
+        w1 = offscreenCtx.measureText(text1).width;
         w2 = offscreenCtx.measureText(text2).width;
-
-        let startY = (offscreenCanvas.height / 2) - (fontSize / 2);
-        
-        offscreenCtx.fillStyle = '#ffffff';
-        offscreenCtx.fillText(text1.trim(), (canvas.width - w1) / 2, startY);
-        
-        let gradient = offscreenCtx.createLinearGradient((canvas.width - w2) / 2, 0, (canvas.width + w2) / 2, 0);
-        gradient.addColorStop(0, '#00d2ff'); // Neon Blue
-        gradient.addColorStop(1, '#b026ff'); // Neon Purple
-        
-        offscreenCtx.fillStyle = gradient;
-        offscreenCtx.fillText(text2, (canvas.width - w2) / 2, startY + fontSize * 1.2);
-
-      } else {
-        // Desktop Layout: Single line, dynamically scaled to never cut off
-        let totalWidth = w1 + w2;
-        let desktopMaxWidth = canvas.width * 0.85; // Leave 15% safety margin
-        if (totalWidth > desktopMaxWidth) {
-          fontSize = fontSize * (desktopMaxWidth / totalWidth);
-          offscreenCtx.font = `900 ${fontSize}px 'Arial Black', Impact, sans-serif`;
-          w1 = offscreenCtx.measureText(text1).width;
-          w2 = offscreenCtx.measureText(text2).width;
-          totalWidth = w1 + w2;
-        }
-
-        let startX = (offscreenCanvas.width - totalWidth) / 2;
-        let startY = offscreenCanvas.height / 2 + (fontSize / 3);
-
-        offscreenCtx.fillStyle = '#ffffff';
-        offscreenCtx.fillText(text1, startX, startY);
-
-        let gradient = offscreenCtx.createLinearGradient(startX + w1, 0, startX + totalWidth, 0);
-        gradient.addColorStop(0, '#00d2ff'); // Neon Blue
-        gradient.addColorStop(1, '#b026ff'); // Neon Purple
-
-        offscreenCtx.fillStyle = gradient;
-        offscreenCtx.fillText(text2, startX + w1, startY);
+        totalWidth = w1 + w2;
       }
 
+      let startX = (offscreenCanvas.width - totalWidth) / 2;
+      let startY = offscreenCanvas.height / 2 + (fontSize / 3);
+
+      // Dark Zinc Color for "About" to match request
+      offscreenCtx.fillStyle = '#52525b'; 
+      offscreenCtx.fillText(text1, startX, startY);
+
+      let gradient = offscreenCtx.createLinearGradient(startX + w1, 0, startX + totalWidth, 0);
+      gradient.addColorStop(0, '#00d2ff'); // Neon Blue
+      gradient.addColorStop(1, '#b026ff'); // Neon Purple
+
+      offscreenCtx.fillStyle = gradient;
+      offscreenCtx.fillText(text2, startX + w1, startY);
+
       const textCoordinates = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-      const step = canvas.width < 768 ? 5 : 4; // Performance mapping
+      const step = 4; // High density mapping
 
       for (let y = 0, y2 = textCoordinates.height; y < y2; y += step) {
         for (let x = 0, x2 = textCoordinates.width; x < x2; x += step) {
@@ -184,8 +186,6 @@ const ParticleHeading = () => {
     }
 
     function animate() {
-      // Using clearRect instead of fillRect for true transparency 
-      // so the glowing orbs behind it stay visible
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'screen';
 
@@ -205,7 +205,6 @@ const ParticleHeading = () => {
 
     window.addEventListener('resize', handleResize);
     
-    // Ensure custom fonts are loaded before calculating text width
     document.fonts.ready.then(() => {
       init();
       animate();
@@ -219,8 +218,26 @@ const ParticleHeading = () => {
       window.removeEventListener('mouseout', handleMouseLeave);
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [isMobileOrTablet]);
 
+  // --- MOBILE / TABLET RENDER ---
+  if (isMobileOrTablet) {
+    return (
+      <div className="w-full flex justify-center items-center h-[200px] sm:h-[250px] relative z-20">
+        <h1 className="text-[3rem] sm:text-[4.5rem] font-['Arial_Black',Impact,sans-serif] uppercase tracking-tighter flex flex-col items-center leading-[1.1] drop-shadow-lg">
+          <span className="text-zinc-500 flex items-center gap-3">
+            <Compass className="w-8 h-8 sm:w-12 sm:h-12 text-[#00d2ff] animate-pulse" /> 
+            About
+          </span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e81cff] via-[#b026ff] to-[#00d2ff] drop-shadow-[0_0_25px_rgba(232,28,255,0.4)]">
+            Our Journey
+          </span>
+        </h1>
+      </div>
+    );
+  }
+
+  // --- DESKTOP RENDER ---
   return (
     <div className="w-full h-[250px] md:h-[200px] relative mb-6">
       <h1 className="sr-only">About Our Journey</h1>
@@ -246,27 +263,21 @@ const AboutUs = () => {
     offset: ["start end", "end start"]
   });
 
-  // Collage-specific scroll progress for tighter control
   const { scrollYProgress: collageProgress } = useScroll({
     target: collageRef,
     offset: ["start end", "end start"]
   });
 
-  // Spring config for smooth, natural motion
   const springConfig = { stiffness: 60, damping: 20, mass: 0.8 };
 
-  // Header parallax — gentle float
   const rawYText = useTransform(scrollYProgress, [0, 1], [30, -60]);
   const yText = useSpring(rawYText, springConfig);
 
-  // Background orbs — subtle drift, different speeds for depth
   const rawYBg1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const rawYBg2 = useTransform(scrollYProgress, [0, 1], [0, 80]);
   const yBg1 = useSpring(rawYBg1, { stiffness: 40, damping: 25 });
   const yBg2 = useSpring(rawYBg2, { stiffness: 40, damping: 25 });
 
-  // Image parallax — controlled ranges, different speeds per layer for depth
-  // On mobile, disable transforms for clear image display
   const rawYImg1 = useTransform(collageProgress, [0, 1], isMobile ? [0, 0] : [60, -80]);
   const rawYImg2 = useTransform(collageProgress, [0, 1], isMobile ? [0, 0] : [-40, 100]);
   const rawYImg3 = useTransform(collageProgress, [0, 1], isMobile ? [0, 0] : [80, -100]);
@@ -274,16 +285,13 @@ const AboutUs = () => {
   const yImg2 = useSpring(rawYImg2, springConfig);
   const yImg3 = useSpring(rawYImg3, springConfig);
 
-  // Rotation on scroll — disabled on mobile for clarity
   const rotateImg1 = useTransform(collageProgress, [0, 0.5, 1], isMobile ? [0, 0, 0] : [2, 0, -2]);
   const rotateImg2 = useTransform(collageProgress, [0, 0.5, 1], isMobile ? [0, 0, 0] : [-4, -2, 0]);
   const rotateImg3 = useTransform(collageProgress, [0, 0.5, 1], isMobile ? [0, 0, 0] : [3, 1, -1]);
 
-  // Scale — disabled on mobile for clarity
   const scaleImg1 = useTransform(collageProgress, [0.1, 0.4, 0.8], isMobile ? [1, 1, 1] : [0.9, 1.02, 0.98]);
   const smoothScaleImg1 = useSpring(scaleImg1, springConfig);
 
-  // Staggered reveal variants
   const revealVariants = {
     hidden: { opacity: 0, y: 60, scale: 0.95 },
     visible: (i) => ({
@@ -301,7 +309,7 @@ const AboutUs = () => {
   return (
     <div className="w-full bg-zinc-950 px-6 min-h-[150vh] relative overflow-hidden" ref={containerRef}>
       
-      {/* Background Glowing Orbs — smooth drift */}
+      {/* Background Glowing Orbs */}
       <motion.div style={{ y: yBg1 }} className="absolute top-40 left-10 md:left-40 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-[#00d2ff]/10 rounded-full blur-[100px] pointer-events-none" />
       <motion.div style={{ y: yBg2 }} className="absolute bottom-40 right-10 md:right-40 w-[250px] h-[250px] md:w-[600px] md:h-[600px] bg-[#b026ff]/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -312,7 +320,7 @@ const AboutUs = () => {
           style={{ y: yText }} 
           className="text-center mb-24 md:mb-40 z-30 px-4 w-full"
         >
-          {/* 3D Particle Text Component Replacing standard h1 */}
+          {/* Responsive Heading Component */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -328,7 +336,7 @@ const AboutUs = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="text-lg md:text-2xl text-gray-300 max-w-3xl mx-auto font-light leading-relaxed"
+            className="text-lg md:text-2xl text-gray-300 max-w-3xl mx-auto font-light leading-relaxed mt-4"
           >
             I'm Surya, a full-stack developer with a passion for building beautiful, user-friendly web applications and I am always looking for new challenges to tackle.
             I don't just build websites. I craft digital experiences. Every pixel, every animation, every line of code is designed to leave a lasting impression.
@@ -338,7 +346,7 @@ const AboutUs = () => {
         {/* Dynamic Collage Section */}
         <div ref={collageRef} className="relative w-full max-w-5xl h-[900px] md:h-[800px] flex items-center justify-center">
           
-          {/* Top Left Image — medium layer speed + scroll rotation */}
+          {/* Top Left Image */}
           <motion.div 
             style={{ y: yImg2, rotate: rotateImg2 }} 
             variants={revealVariants}
@@ -356,7 +364,7 @@ const AboutUs = () => {
             </div>
           </motion.div>
 
-          {/* Center Main Image — slowest layer + scale pulse + scroll rotation */}
+          {/* Center Main Image */}
           <motion.div 
             style={{ y: yImg1, rotate: rotateImg1, scale: smoothScaleImg1 }} 
             variants={revealVariants}
@@ -375,7 +383,7 @@ const AboutUs = () => {
             </div>
           </motion.div>
 
-          {/* Bottom Right Image — fastest layer + scroll rotation */}
+          {/* Bottom Right Image */}
           <motion.div 
             style={{ y: yImg3, rotate: rotateImg3 }} 
             variants={revealVariants}
@@ -395,7 +403,7 @@ const AboutUs = () => {
           
         </div>
 
-        {/* Closing text — smooth reveal */}
+        {/* Closing text */}
         <motion.div 
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
