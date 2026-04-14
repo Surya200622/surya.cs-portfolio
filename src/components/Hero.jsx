@@ -182,8 +182,7 @@ const MorphingHeroParticles = () => {
         }
       }
 
-      // 6. THE TRICK: Split arrays based on Y-axis so SURYA CS DOES NOT SHUFFLE
-      // Anything below the name baseline + half the gap is considered the role text
+      // 6. Split arrays based on Y-axis so SURYA CS DOES NOT SHUFFLE
       let splitIndex = newTargets.findIndex(t => t.y > nameStartY + (gap / 2));
       if (splitIndex === -1) splitIndex = newTargets.length;
       
@@ -193,8 +192,6 @@ const MorphingHeroParticles = () => {
       // Shuffle ONLY the role targets to create the matrix morphing effect
       roleTargets.sort(() => Math.random() - 0.5);
       
-      // Recombine. Because nameTargets is first and unshuffled, particles[0 to N] 
-      // will always stick exactly to the "SURYA CS" pixels.
       newTargets = [...nameTargets, ...roleTargets];
 
       // 7. Update Particles Array smoothly
@@ -265,7 +262,8 @@ const MorphingHeroParticles = () => {
 
 
 // --- Main Hero Component ---
-export default function Hero() {
+// Changed from 'export default function Hero()' to 'const Hero = () => {' to fix the build error
+const Hero = () => {
   const sectionRef = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -364,7 +362,6 @@ export default function Hero() {
               Hello, I'm
             </motion.h2>
 
-            {/* The Morphing 3D Particle Engine - Height increased to fit both Title and Roles */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -411,6 +408,7 @@ export default function Hero() {
       </div>
     </section>
   );
-}
+};
 
+// Only ONE default export!
 export default Hero;
